@@ -1,0 +1,142 @@
+package olivieri.alex.fx.tab;
+
+import javafx.concurrent.Task;
+import javafx.geometry.Insets;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.SpinnerValueFactory;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.stage.FileChooser;
+import javafx.stage.Window;
+import olivieri.alex.fx.FxDialogUtils;
+import olivieri.alex.fx.PdfUtilityFxController;
+
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+public final class FxRepeatTab {
+    private FxRepeatTab() {
+    }
+
+    public static Tab create(PdfUtilityFxController controller, Window owner) {
+        Tab tab = new Tab("Ripeti PDF");
+        tab.setClosable(false);
+
+        TextField inputField = new TextField();
+        Button browseButton = new Button("Seleziona PDF");
+        Spinner<Integer> repetitionsSpinner = new Spinner<>(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 500, 2));
+        TextField outputField = new TextField();
+        Button repeatButton = new Button("Ripeti PDF");
+        ProgressIndicator progressIndicator = new ProgressIndicator();
+        progressIndicator.setMaxSize(24, 24);
+        progressIndicator.setVisible(false);
+
+        browseButton.setOnAction(event -> {
+            FileChooser chooser = new FileChooser();
+            chooser.setTitle("Seleziona PDF");
+            chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF", "*.pdf"));
+            File selected = chooser.showOpenDialog(owner);
+            if (selected != null) {
+                inputField.setText(selected.getAbsolutePath());
+                updateSuggestion(outputField, controller, selected.toPath(), repetitionsSpinner.getValue());
+            }
+        });
+
+        inputField.textProperty().addListener((obs, oldVal, newVal) -> updateSuggestionIfNeeded(outputField, controller,
+                newVal, repetitionsSpinner.getValue()));
+
+        repetitionsSpinner.valueProperty().addListener((obs, oldVal, newVal) -> updateSuggestionIfNeeded(outputField,
+                controller, inputField.getText(), newVal));
+
+        repeatButton.setOnAction(event -> {
+            Task<Path> task = new Task<>() {
+                @Override
+                protected Path call() throws Exception {
+                    return controller.repeatPdf(inputField.getText(), repetitionsSpinner.getValue(), outputField.getText());
+                }
+            };
+            bindUiState(repeatButton, progressIndicator, task);
+            task.setOnSucceeded(e -> FxDialogUtils.showInformation("Successo",
+                    "Operazione completata!\nFile creato: " + task.getValue(), owner));
+            task.setOnFailed(e -> showFailure(task.getException(), owner, "Errore durante l'elaborazione."));
+            new Thread(task, "repeat-task").start();
+        });
+
+        GridPane form = new GridPane();
+        form.setHgap(10);
+        form.setVgap(10);
+        form.setPadding(new Insets(10));
+        form.add(new Label("PDF sorgente:"), 0, 0);
+        form.add(inputField, 1, 0);
+        form.add(browseButton, 2, 0);
+        form.add(new Label("Ripetizioni:"), 0, 1);
+        form.add(repetitionsSpinner, 1, 1, 2, 1);
+        form.add(new Label("File di output:"), 0, 2);
+        form.add(outputField, 1, 2, 2, 1);
+        GridPane.setHgrow(inputField, Priority.ALWAYS);
+        GridPane.setHgrow(outputField, Priority.ALWAYS);
+        GridPane.setHgrow(repetitionsSpinner, Priority.ALWAYS);
+
+        HBox actionRow = new HBox(10, repeatButton, progressIndicator);
+        actionRow.setPadding(new Insets(0, 10, 10, 10));
+
+        BorderPane container = new BorderPane();
+        container.setCenter(form);
+        container.setBottom(actionRow);
+        tab.setContent(container);
+        return tab;
+    }
+
+    private static void updateSuggestionIfNeeded(TextField outputField, PdfUtilityFxController controller, String input,
+            int repetitions) {
+        if (!outputField.getText().trim().isEmpty()) {
+            return;
+        }
+        String trimmed = input == null ? "" : input.trim();
+        if (trimmed.isEmpty()) {
+            return;
+        }
+        try {
+            Path path = Paths.get(trimmed);
+            updateSuggestion(outputField, controller, path, repetitions);
+        } catch (Exception ignored) {
+            // wait for valid path
+        }
+    }
+
+    private static void updateSuggestion(TextField outputField, PdfUtilityFxController controller, Path path,
+            int repetitions) {
+        if (outputField.getText().trim().isEmpty()) {
+            outputField.setText(controller.buildDefaultRepeatedName(path, repetitions));
+        }
+    }
+
+    private static void bindUiState(Button actionButton, ProgressIndicator indicator, Task<?> task) {
+        actionButton.disableProperty().bind(task.runningProperty());
+        indicator.visibleProperty().bind(task.runningProperty());
+    }
+
+    private static void showFailure(Throwable throwable, Window owner, String fallbackMessage) {
+        Throwable root = throwable;
+        while (root != null && root.getCause() != null) {
+            root = root.getCause();
+        }
+        String message = root != null ? root.getMessage() : null;
+        if (message == null || message.trim().isEmpty()) {
+            message = fallbackMessage;
+        }
+        if (root instanceof IllegalArgumentException) {
+            FxDialogUtils.showWarning("Attenzione", message, owner);
+        } else {
+            FxDialogUtils.showError("Errore", message, owner);
+        }
+    }
+}

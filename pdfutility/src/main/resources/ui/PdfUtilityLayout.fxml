@@ -1,0 +1,572 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.SpinnerValueFactory?>
+<?import javafx.scene.control.SpinnerValueFactory.DoubleSpinnerValueFactory?>
+<?import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import java.lang.Double?>
+<?import java.lang.Integer?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/22.0.2" xmlns:fx="http://javafx.com/fxml"
+            fx:controller="olivieri.alex.fx.PdfUtilityFxLayoutController">
+  <top>
+    <HBox spacing="10" alignment="CENTER_LEFT"
+                                          style="-fx-background-color: linear-gradient(to right, rgb(31,79,156), rgb(42,124,193));">
+      <padding>
+        <Insets top="12" right="12" bottom="12" left="12"/>
+      </padding>
+      <Label text="Utility PDF - monitoraggio ISO 9001"
+                                                             style="-fx-font-size: 18px; -fx-text-fill: white;"/>
+      <Region fx:id="toolbarSpacer" HBox.hgrow="ALWAYS"/>
+      <Button fx:id="openAuditLogButton" text="Apri log audit"
+                                                              style="-fx-background-color: white; -fx-text-fill: rgb(31,79,156);"/>
+    </HBox>
+  </top>
+
+  <center>
+    <TabPane fx:id="mainTabPane" tabClosingPolicy="UNAVAILABLE">
+      <tabs>
+        <Tab text="PDF">
+          <BorderPane>
+            <center>
+              <TabPane tabClosingPolicy="UNAVAILABLE">
+                <tabs>
+                  <Tab text="Unione PDF">
+                    <BorderPane>
+                      <center>
+                        <TabPane tabClosingPolicy="UNAVAILABLE">
+                          <tabs>
+                            <Tab fx:id="mergeTab" text="Accoda PDF">
+                              <BorderPane>
+                                <center>
+                                  <GridPane hgap="10" vgap="10">
+                                    <padding>
+                                      <Insets top="10" right="10" bottom="10" left="10"/>
+                                    </padding>
+                                    <columnConstraints>
+                                      <ColumnConstraints hgrow="SOMETIMES"/>
+                                      <ColumnConstraints hgrow="ALWAYS"/>
+                                      <ColumnConstraints hgrow="SOMETIMES"/>
+                                    </columnConstraints>
+                                    <Label text="Cartella PDF:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                                    <TextField fx:id="mergeDirectoryField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                                    <Button fx:id="mergeBrowseButton" text="Sfoglia cartella"
+                                                                                                                                                                                                                                                                                                                                            GridPane.rowIndex="0" GridPane.columnIndex="2"/>
+                                    <Label text="File di output:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                                    <TextField fx:id="mergeOutputField" text="#_merged.pdf"
+                                                                                                                                                                                                                                                                                                                                               GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
+                                  </GridPane>
+                                </center>
+
+                                <bottom>
+                                  <HBox spacing="10" alignment="CENTER_RIGHT">
+                                    <padding>
+                                      <Insets top="8" right="12" bottom="10" left="10"/>
+                                    </padding>
+                                    <ProgressIndicator fx:id="mergeProgress" visible="false" maxHeight="24" maxWidth="24"/>
+                                    <Button fx:id="mergeButton" text="Unisci"/>
+                                  </HBox>
+                                </bottom>
+                              </BorderPane>
+                            </Tab>
+                            <Tab fx:id="repeatTab" text="Ripeti PDF">
+                              <BorderPane>
+                                <center>
+                                  <GridPane hgap="10" vgap="10">
+                                    <padding>
+                                      <Insets top="10" right="10" bottom="10" left="10"/>
+                                    </padding>
+                                    <Label text="PDF sorgente:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                                    <TextField fx:id="repeatInputField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                                    <Button fx:id="repeatBrowseButton" text="Sfoglia"
+                                                                                                                                                                                                                                                                                                                                                GridPane.rowIndex="0" GridPane.columnIndex="2"/>
+                                    <Label text="Ripetizioni:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                                    <Spinner fx:id="repeatSpinner" GridPane.rowIndex="1" GridPane.columnIndex="1">
+                                      <valueFactory>
+                                        <SpinnerValueFactory.IntegerSpinnerValueFactory min="1" max="999" initialValue="2"/>
+                                      </valueFactory>
+                                    </Spinner>
+                                    <Label text="File di output:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                                    <TextField fx:id="repeatOutputField" GridPane.rowIndex="2" GridPane.columnIndex="1"
+                                                                                                                                                                                                                                                                                                                                                GridPane.columnSpan="2"/>
+                                  </GridPane>
+                                </center>
+
+                                <bottom>
+                                  <HBox spacing="10" alignment="CENTER_RIGHT">
+                                    <padding>
+                                      <Insets top="8" right="12" bottom="10" left="10"/>
+                                    </padding>
+                                    <ProgressIndicator fx:id="repeatProgress" visible="false" maxHeight="24" maxWidth="24"/>
+                                    <Button fx:id="repeatButton" text="Ripeti"/>
+                                  </HBox>
+                                </bottom>
+                              </BorderPane>
+                            </Tab>
+                            <Tab fx:id="pairMergeTab" text="Unisci per nome">
+                              <BorderPane>
+                                <center>
+                                  <GridPane hgap="10" vgap="10">
+                                    <padding>
+                                      <Insets top="10" right="10" bottom="10" left="10"/>
+                                    </padding>
+                                    <Label text="Prima cartella:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                                    <TextField fx:id="pairFirstField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                                    <Button fx:id="pairFirstBrowse" text="Sfoglia"
+                                                                                                                                                                                                                                                  GridPane.rowIndex="0" GridPane.columnIndex="2"/>
+                                    <Label text="Seconda cartella:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                                    <TextField fx:id="pairSecondField" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                                    <Button fx:id="pairSecondBrowse" text="Sfoglia"
+                                                                                                                                                                                                                                                  GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+                                  </GridPane>
+                                </center>
+
+                                <bottom>
+                                  <HBox spacing="10" alignment="CENTER_RIGHT">
+                                    <padding>
+                                      <Insets top="8" right="12" bottom="10" left="10"/>
+                                    </padding>
+                                    <ProgressIndicator fx:id="pairProgress" visible="false" maxHeight="24" maxWidth="24"/>
+                                    <Button fx:id="pairButton" text="Unisci per nome"/>
+                                  </HBox>
+                                </bottom>
+                              </BorderPane>
+                            </Tab>
+                          </tabs>
+                        </TabPane>
+                      </center>
+                    </BorderPane>
+                  </Tab>
+                  <Tab text="Filtra PDF">
+                    <BorderPane>
+                      <center>
+                        <TabPane tabClosingPolicy="UNAVAILABLE">
+                          <tabs>
+                            <Tab fx:id="pageFilterTab" text="Filtro pagine">
+                              <BorderPane>
+                                <center>
+                                  <GridPane hgap="10" vgap="10">
+                                    <padding>
+                                      <Insets top="10" right="10" bottom="10" left="10"/>
+                                    </padding>
+                                    <Label text="PDF sorgente:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                                    <TextField fx:id="filterInputField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                                    <Button fx:id="filterBrowseButton" text="Sfoglia"
+                                                                                                                                                                                                                                                                                                                                            GridPane.rowIndex="0" GridPane.columnIndex="2"/>
+                                    <RadioButton fx:id="filterRemoveOdd" text="Rimuovi pagine dispari"
+                                                                                                                                                                                                                                                                                                                                                 GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.columnSpan="3" selected="true"/>
+                                    <RadioButton fx:id="filterRemoveEven" text="Rimuovi pagine pari"
+                                                                                                                                                                                                                                                                                                                                                 GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.columnSpan="3"/>
+                                    <Label text="File di output:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                                    <TextField fx:id="filterOutputField" GridPane.rowIndex="3" GridPane.columnIndex="1"
+                                                                                                                                                                                                                                                                                                                                               GridPane.columnSpan="2"/>
+                                  </GridPane>
+                                </center>
+
+                                <bottom>
+                                  <HBox spacing="10" alignment="CENTER_RIGHT">
+                                    <padding>
+                                      <Insets top="8" right="12" bottom="10" left="10"/>
+                                    </padding>
+                                    <ProgressIndicator fx:id="filterProgress" visible="false" maxHeight="24" maxWidth="24"/>
+                                    <Button fx:id="filterButton" text="Filtra pagine"/>
+                                  </HBox>
+                                </bottom>
+                              </BorderPane>
+                            </Tab>
+                          </tabs>
+                        </TabPane>
+                      </center>
+                    </BorderPane>
+                  </Tab>
+                  <Tab text="Pagine Bianche">
+                    <BorderPane>
+                      <center>
+                        <TabPane tabClosingPolicy="UNAVAILABLE">
+                          <tabs>
+                            <Tab fx:id="blankPagesTab" text="Pagine Bianche">
+                              <BorderPane>
+                                <center>
+                                  <GridPane hgap="10" vgap="10">
+                                    <padding>
+                                      <Insets top="10" right="10" bottom="10" left="10"/>
+                                    </padding>
+                                    <Label text="PDF sorgente:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                                    <TextField fx:id="blankInputField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                                    <Button fx:id="blankBrowseButton" text="Sfoglia"
+                                                                                                                                                                                                                                                            GridPane.rowIndex="0" GridPane.columnIndex="2"/>
+                                    <Label text="File di output:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                                    <TextField fx:id="blankOutputField" GridPane.rowIndex="1" GridPane.columnIndex="1"
+                                                                                                                                                                                                                                                               GridPane.columnSpan="2"/>
+                                  </GridPane>
+                                </center>
+
+                                <bottom>
+                                  <HBox spacing="10" alignment="CENTER_RIGHT">
+                                    <padding>
+                                      <Insets top="8" right="12" bottom="10" left="10"/>
+                                    </padding>
+                                    <ProgressIndicator fx:id="blankProgress" visible="false" maxHeight="24" maxWidth="24"/>
+                                    <Button fx:id="blankButton" text="Inserisci pagine bianche"/>
+                                  </HBox>
+                                </bottom>
+                              </BorderPane>
+                            </Tab>
+                            <Tab fx:id="conditionalBlankTab" text="Pagine Bianche dopo testo">
+                              <BorderPane>
+                                <center>
+                                  <GridPane hgap="10" vgap="10">
+                                    <padding>
+                                      <Insets top="10" right="10" bottom="10" left="10"/>
+                                    </padding>
+                                    <Label text="PDF sorgente:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                                    <TextField fx:id="conditionalInputField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                                    <Button fx:id="conditionalBrowseButton" text="Sfoglia"
+                                                                                                                                                                                                                                                            GridPane.rowIndex="0" GridPane.columnIndex="2"/>
+                                    <Label text="Stringa:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                                    <TextField fx:id="conditionalPhraseField" GridPane.rowIndex="1" GridPane.columnIndex="1"
+                                                                                                                                                                                                                                                               GridPane.columnSpan="2"/>
+                                    <CheckBox fx:id="conditionalCaseSensitive" text="Rispetta maiuscole/minuscole"
+                                                                                                                                                                                                                                                              GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.columnSpan="3"/>
+                                    <Label text="File di output:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                                    <TextField fx:id="conditionalOutputField" GridPane.rowIndex="3" GridPane.columnIndex="1"
+                                                                                                                                                                                                                                                               GridPane.columnSpan="2"/>
+                                  </GridPane>
+                                </center>
+
+                                <bottom>
+                                  <HBox spacing="10" alignment="CENTER_RIGHT">
+                                    <padding>
+                                      <Insets top="8" right="12" bottom="10" left="10"/>
+                                    </padding>
+                                    <ProgressIndicator fx:id="conditionalProgress" visible="false" maxHeight="24" maxWidth="24"/>
+                                    <Button fx:id="conditionalButton" text="Inserisci pagine bianche"/>
+                                  </HBox>
+                                </bottom>
+                              </BorderPane>
+                            </Tab>
+                          </tabs>
+                        </TabPane>
+                      </center>
+                    </BorderPane>
+                  </Tab>
+                  <Tab text="Ottimizza PDF">
+                    <BorderPane>
+                      <center>
+                        <TabPane tabClosingPolicy="UNAVAILABLE">
+                          <tabs>
+                            <Tab fx:id="optimizeTab" text="Ottimizzazione PDF">
+                              <BorderPane>
+                                <center>
+                                  <GridPane hgap="10" vgap="10">
+                                    <padding>
+                                      <Insets top="10" right="10" bottom="10" left="10"/>
+                                    </padding>
+                                    <Label text="File/cartella:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                                    <TextField fx:id="optimizeInputField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                                    <Button fx:id="optimizeBrowseButton" text="Sfoglia"
+                                                                                                                                                                                                                                                                                                                                            GridPane.rowIndex="0" GridPane.columnIndex="2"/>
+                                    <Label text="File di output:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                                    <TextField fx:id="optimizeOutputField" GridPane.rowIndex="1" GridPane.columnIndex="1"
+                                                                                                                                                                                                                                                                                                                                               GridPane.columnSpan="2"/>
+                                  </GridPane>
+                                </center>
+
+                                <bottom>
+                                  <HBox spacing="10" alignment="CENTER_RIGHT">
+                                    <padding>
+                                      <Insets top="8" right="12" bottom="10" left="10"/>
+                                    </padding>
+                                    <ProgressIndicator fx:id="optimizeProgress" visible="false" maxHeight="24" maxWidth="24"/>
+                                    <Button fx:id="optimizeButton" text="Ottimizza"/>
+                                  </HBox>
+                                </bottom>
+                              </BorderPane>
+                            </Tab>
+                            <Tab fx:id="risoTab" text="Riso GL9730">
+                              <BorderPane>
+                                <center>
+                                  <GridPane hgap="10" vgap="10">
+                                    <padding>
+                                      <Insets top="10" right="10" bottom="10" left="10"/>
+                                    </padding>
+                                    <Label text="PDF sorgente:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                                    <TextField fx:id="risoInputField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                                    <Button fx:id="risoBrowseButton" text="Sfoglia"
+                                                                                                                                                                                                                                                                                                    GridPane.rowIndex="0" GridPane.columnIndex="2"/>
+                                    <Label text="File di output:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                                    <TextField fx:id="risoOutputField" GridPane.rowIndex="1" GridPane.columnIndex="1"
+                                                                                                                                                                                                                                                                                                       GridPane.columnSpan="2"/>
+                                    <Label text="Record ID:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                                    <TextField fx:id="risoRecordField" GridPane.rowIndex="2" GridPane.columnIndex="1"
+                                                                                                                                                                                                                                                                                                       GridPane.columnSpan="2"/>
+                                  </GridPane>
+                                </center>
+
+                                <bottom>
+                                  <HBox spacing="10" alignment="CENTER_RIGHT">
+                                    <padding>
+                                      <Insets top="8" right="12" bottom="10" left="10"/>
+                                    </padding>
+                                    <ProgressIndicator fx:id="risoProgress" visible="false" maxHeight="24" maxWidth="24"/>
+                                    <Button fx:id="risoButton" text="Ottimizza Riso"/>
+                                  </HBox>
+                                </bottom>
+                              </BorderPane>
+                            </Tab>
+                          </tabs>
+                        </TabPane>
+                      </center>
+                    </BorderPane>
+                  </Tab>
+                  <Tab text="Timbro PDF">
+                    <BorderPane>
+                      <center>
+                        <TabPane tabClosingPolicy="UNAVAILABLE">
+                          <tabs>
+                            <Tab fx:id="folderStampTab" text="Timbro cartella">
+                              <BorderPane>
+                                <center>
+                                  <GridPane hgap="10" vgap="10">
+                                    <padding>
+                                      <Insets top="10" right="10" bottom="10" left="10"/>
+                                    </padding>
+                                    <Label text="Cartella PDF:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                                    <TextField fx:id="folderStampDirectoryField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                                    <Button fx:id="folderStampBrowse" text="Sfoglia"
+                                                                                                                                                                                                                                        GridPane.rowIndex="0" GridPane.columnIndex="2"/>
+                                    <Label text="Testo timbro:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                                    <TextField fx:id="folderStampTextField" GridPane.rowIndex="1" GridPane.columnIndex="1"
+                                                                                                                                                                                                                                           GridPane.columnSpan="2"/>
+                                    <Label text="Coordinata X:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                                    <Spinner fx:id="folderStampXSpinner" GridPane.rowIndex="2" GridPane.columnIndex="1">
+                                      <valueFactory>
+                                        <SpinnerValueFactory.DoubleSpinnerValueFactory min="0" max="500" initialValue="5"/>
+                                      </valueFactory>
+                                    </Spinner>
+                                    <Label text="Coordinata Y:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                                    <Spinner fx:id="folderStampYSpinner" GridPane.rowIndex="3" GridPane.columnIndex="1">
+                                      <valueFactory>
+                                        <SpinnerValueFactory.DoubleSpinnerValueFactory min="0" max="500" initialValue="5"/>
+                                      </valueFactory>
+                                    </Spinner>
+                                  </GridPane>
+                                </center>
+
+                                <bottom>
+                                  <HBox spacing="10" alignment="CENTER_RIGHT">
+                                    <padding>
+                                      <Insets top="8" right="12" bottom="10" left="10"/>
+                                    </padding>
+                                    <ProgressIndicator fx:id="folderStampProgress" visible="false" maxHeight="24" maxWidth="24"/>
+                                    <Button fx:id="folderStampButton" text="Applica timbro"/>
+                                  </HBox>
+                                </bottom>
+                              </BorderPane>
+                            </Tab>
+                            <Tab fx:id="keywordStampTab" text="Timbro parole chiave">
+                              <BorderPane>
+                                <center>
+                                  <Label text="Caricamento del modulo timbro parole chiave..." wrapText="true"/>
+                                </center>
+                              </BorderPane>
+                            </Tab>
+                          </tabs>
+                        </TabPane>
+                      </center>
+                    </BorderPane>
+                  </Tab>
+                  <Tab fx:id="markerSplitTab" text="Split per stringa">
+                    <BorderPane>
+                      <center>
+                        <GridPane hgap="10" vgap="10">
+                          <padding>
+                            <Insets top="10" right="10" bottom="10" left="10"/>
+                          </padding>
+                          <Label text="PDF sorgente:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                          <TextField fx:id="markerPdfField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                          <Button fx:id="markerPdfBrowse" text="Sfoglia"
+                                                                                                                                                                                                                              GridPane.rowIndex="0" GridPane.columnIndex="2"/>
+                          <Label text="Stringa marker:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                          <TextField fx:id="markerTextField" GridPane.rowIndex="1" GridPane.columnIndex="1"
+                                                                                                                                                                                                                                 GridPane.columnSpan="2"/>
+                          <CheckBox fx:id="markerCaseSensitive" text="Rispetta maiuscole/minuscole"
+                                                                                                                                                                                                                                GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.columnSpan="3"/>
+                          <Label text="Cartella base:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                          <TextField fx:id="markerBaseField" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+                          <Button fx:id="markerBaseBrowse" text="Sfoglia"
+                                                                                                                                                                                                                              GridPane.rowIndex="3" GridPane.columnIndex="2"/>
+                          <Label text="Nome cartella output:" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                          <TextField fx:id="markerFolderField" GridPane.rowIndex="4" GridPane.columnIndex="1"
+                                                                                                                                                                                                                                 GridPane.columnSpan="2"/>
+                          <CheckBox fx:id="markerAppendCheck" text="Aggiungi pagine se esiste"
+                                                                                                                                                                                                                                GridPane.rowIndex="5" GridPane.columnIndex="0" GridPane.columnSpan="3"/>
+                        </GridPane>
+                      </center>
+
+                      <bottom>
+                        <HBox spacing="10" alignment="CENTER_RIGHT">
+                          <padding>
+                            <Insets top="8" right="12" bottom="10" left="10"/>
+                          </padding>
+                          <ProgressIndicator fx:id="markerProgress" visible="false" maxHeight="24" maxWidth="24"/>
+                          <Button fx:id="markerButton" text="Esegui split"/>
+                        </HBox>
+                      </bottom>
+                    </BorderPane>
+                  </Tab>
+                </tabs>
+              </TabPane>
+            </center>
+          </BorderPane>
+        </Tab>
+        <Tab text="CSV">
+          <BorderPane>
+            <center>
+              <TabPane tabClosingPolicy="UNAVAILABLE">
+                <tabs>
+                  <Tab fx:id="csvRenameTab" text="Rinomina da CSV">
+                    <BorderPane>
+                      <center>
+                        <GridPane hgap="10" vgap="10">
+                          <padding>
+                            <Insets top="10" right="10" bottom="10" left="10"/>
+                          </padding>
+                          <Label text="Cartella PDF:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                          <TextField fx:id="csvRenameDirectoryField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                          <Button fx:id="csvRenameDirectoryBrowse" text="Sfoglia"
+                                                                                                                                                                                                                                                  GridPane.rowIndex="0" GridPane.columnIndex="2"/>
+                          <Label text="File CSV:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                          <TextField fx:id="csvRenameCsvField" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                          <Button fx:id="csvRenameCsvBrowse" text="Sfoglia"
+                                                                                                                                                                                                                                                  GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+                        </GridPane>
+                      </center>
+
+                      <bottom>
+                        <HBox spacing="10" alignment="CENTER_RIGHT">
+                          <padding>
+                            <Insets top="8" right="12" bottom="10" left="10"/>
+                          </padding>
+                          <ProgressIndicator fx:id="csvRenameProgress" visible="false" maxHeight="24" maxWidth="24"/>
+                          <Button fx:id="csvRenameButton" text="Rinomina"/>
+                        </HBox>
+                      </bottom>
+                    </BorderPane>
+                  </Tab>
+                  <Tab fx:id="csvTxtMergeTab" text="Unisci CSV/TXT">
+                    <BorderPane>
+                      <center>
+                        <VBox spacing="10">
+                          <padding>
+                            <Insets top="10" right="10" bottom="10" left="10"/>
+                          </padding>
+                          <HBox spacing="10">
+                            <Button fx:id="csvTxtAddButton" text="Aggiungi file"/>
+                            <Button fx:id="csvTxtRemoveButton" text="Rimuovi selezionati"/>
+                          </HBox>
+                          <ListView fx:id="csvTxtFileList" prefHeight="180"/>
+                          <GridPane hgap="10" vgap="10">
+                            <Label text="File di output:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                            <TextField fx:id="csvTxtOutputField" GridPane.rowIndex="0" GridPane.columnIndex="1"
+                                                                                                                                                                                                                                                                       GridPane.columnSpan="2"/>
+                            <Button fx:id="csvTxtOutputBrowse" text="Sfoglia"
+                                                                                                                                                                                                                                                                    GridPane.rowIndex="0" GridPane.columnIndex="3"/>
+                          </GridPane>
+                        </VBox>
+                      </center>
+
+                      <bottom>
+                        <HBox spacing="10" alignment="CENTER_RIGHT">
+                          <padding>
+                            <Insets top="8" right="12" bottom="10" left="10"/>
+                          </padding>
+                          <ProgressIndicator fx:id="csvTxtProgress" visible="false" maxHeight="24" maxWidth="24"/>
+                          <Button fx:id="csvTxtButton" text="Unisci"/>
+                        </HBox>
+                      </bottom>
+                    </BorderPane>
+                  </Tab>
+                </tabs>
+              </TabPane>
+            </center>
+          </BorderPane>
+        </Tab>
+        <Tab text="Excel">
+          <BorderPane>
+            <center>
+              <TabPane tabClosingPolicy="UNAVAILABLE">
+                <tabs>
+                  <Tab fx:id="csvToExcelTab" text="CSV in Excel">
+                    <BorderPane>
+                      <center>
+                        <GridPane hgap="10" vgap="10">
+                          <padding>
+                            <Insets top="10" right="10" bottom="10" left="10"/>
+                          </padding>
+                          <Label text="File CSV:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                          <TextField fx:id="csvToExcelCsvField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                          <Button fx:id="csvToExcelCsvBrowse" text="Sfoglia"
+                                                                                                                                                                                                                                                  GridPane.rowIndex="0" GridPane.columnIndex="2"/>
+                          <Label text="File Excel:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                          <TextField fx:id="csvToExcelOutputField" GridPane.rowIndex="1" GridPane.columnIndex="1"
+                                                                                                                                                                                                                                                     GridPane.columnSpan="2"/>
+                          <Button fx:id="csvToExcelOutputBrowse" text="Sfoglia"
+                                                                                                                                                                                                                                                  GridPane.rowIndex="1" GridPane.columnIndex="3"/>
+                        </GridPane>
+                      </center>
+
+                      <bottom>
+                        <HBox spacing="10" alignment="CENTER_RIGHT">
+                          <padding>
+                            <Insets top="8" right="12" bottom="10" left="10"/>
+                          </padding>
+                          <ProgressIndicator fx:id="csvToExcelProgress" visible="false" maxHeight="24" maxWidth="24"/>
+                          <Button fx:id="csvToExcelButton" text="Converti"/>
+                        </HBox>
+                      </bottom>
+                    </BorderPane>
+                  </Tab>
+                </tabs>
+              </TabPane>
+            </center>
+          </BorderPane>
+        </Tab>
+        <Tab text="Word">
+          <BorderPane>
+            <center>
+              <TabPane tabClosingPolicy="UNAVAILABLE">
+                <tabs>
+                  <Tab fx:id="pdfToWordTab" text="PDF in Word">
+                    <BorderPane>
+                      <center>
+                        <Label text="Caricamento del convertitore PDF in Word..." wrapText="true"/>
+                      </center>
+                    </BorderPane>
+                  </Tab>
+                </tabs>
+              </TabPane>
+            </center>
+          </BorderPane>
+        </Tab>
+      </tabs>
+    </TabPane>
+  </center>
+</BorderPane>
