@@ -218,6 +218,7 @@
               </modulePaths>
               <type>MSI</type>
               <appVersion>${project.version}</appVersion>
+              <resourceDir>${project.basedir}/src/main/resources/installer</resourceDir>
               <winShortcut>true</winShortcut>
               <winMenu>true</winMenu>
               <icon>${project.basedir}/src/main/resources/ui/logo.ico</icon>
