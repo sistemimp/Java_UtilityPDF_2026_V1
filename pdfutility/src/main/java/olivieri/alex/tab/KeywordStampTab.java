@@ -156,6 +156,9 @@ public final class KeywordStampTab {
         JPanel container = new JPanel(new BorderLayout(10, 10));
         container.add(formPanel, BorderLayout.CENTER);
         container.add(stampButton, BorderLayout.PAGE_END);
+        JLabel descriptionLabel = new JLabel("Applica un timbro dove compare una parola chiave nel PDF.");
+        descriptionLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 10, 0));
+        container.add(descriptionLabel, BorderLayout.NORTH);
         container.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
         return container;
     }

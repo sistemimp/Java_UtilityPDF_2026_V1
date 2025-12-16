@@ -1,6 +1,8 @@
 package olivieri.alex.util;
 
+import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfPage;
 import com.itextpdf.kernel.pdf.PdfReader;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.kernel.utils.PdfMerger;
@@ -62,7 +64,12 @@ public class PdfPairMerger {
      * {@code secondDirectory}.
      */
     public Result mergeMatchingPairs(Path firstDirectory, Path secondDirectory) throws IOException {
-        String details = "firstDir=" + firstDirectory + ",secondDir=" + secondDirectory;
+        return mergeMatchingPairs(firstDirectory, secondDirectory, false);
+    }
+
+    public Result mergeMatchingPairs(Path firstDirectory, Path secondDirectory, boolean normalizeFR)
+            throws IOException {
+        String details = "firstDir=" + firstDirectory + ",secondDir=" + secondDirectory + ",normalizeFR=" + normalizeFR;
         Path plannedOutput = null;
         try {
             if (firstDirectory == null || !Files.isDirectory(firstDirectory)) {
@@ -82,7 +89,7 @@ public class PdfPairMerger {
                             path -> path, (existing, replacement) -> replacement, HashMap::new));
 
             List<Pair> pairsToMerge = new ArrayList<>();
-            List<String> missingEntries = new ArrayList<>();
+            List<MissingEntry> missingEntries = new ArrayList<>();
             Set<String> firstNames = new HashSet<>();
             for (Path firstPdf : firstPdfs) {
                 String key = firstPdf.getFileName().toString().toLowerCase(Locale.ROOT);
@@ -91,13 +98,16 @@ public class PdfPairMerger {
                 if (match != null) {
                     pairsToMerge.add(new Pair(firstPdf, match));
                 } else {
-                    missingEntries.add("Manca in cartella 2: " + firstPdf.getFileName());
+                    missingEntries.add(new MissingEntry("Cartella 1", firstDirectory, firstPdf.getFileName().toString(),
+                            "Nessun corrispondente in cartella 2"));
                 }
             }
 
             for (Map.Entry<String, Path> entry : secondPdfMap.entrySet()) {
                 if (!firstNames.contains(entry.getKey())) {
-                    missingEntries.add("Manca in cartella 1: " + entry.getValue().getFileName());
+                    missingEntries.add(new MissingEntry("Cartella 2", secondDirectory,
+                            entry.getValue().getFileName().toString(),
+                            "Nessun corrispondente in cartella 1"));
                 }
             }
 
@@ -110,12 +120,12 @@ public class PdfPairMerger {
             Path missingReportPath = null;
             if (!missingEntries.isEmpty()) {
                 missingReportPath = resultDirectory.resolve("missing_pairs.txt");
-                Files.write(missingReportPath, missingEntries, StandardCharsets.UTF_8);
+                Files.write(missingReportPath, formatMissingEntries(missingEntries), StandardCharsets.UTF_8);
             }
 
             for (Pair pair : pairsToMerge) {
                 Path outputFile = resultDirectory.resolve(pair.first().getFileName());
-                mergeTwoPdfs(pair.first(), pair.second(), outputFile);
+                mergeTwoPdfs(pair.first(), pair.second(), outputFile, normalizeFR);
             }
 
             Result result = new Result(resultDirectory, pairsToMerge.size(), missingReportPath);
@@ -127,7 +137,7 @@ public class PdfPairMerger {
         }
     }
 
-    private void mergeTwoPdfs(Path first, Path second, Path outputFile) throws IOException {
+    private void mergeTwoPdfs(Path first, Path second, Path outputFile, boolean normalizeFR) throws IOException {
         try (PdfWriter writer = new PdfWriter(outputFile.toString(), App.writerProperties);
                 PdfDocument outputDocument = new PdfDocument(writer);
                 PdfDocument firstDocument = new PdfDocument(new PdfReader(first.toString()));
@@ -135,8 +145,20 @@ public class PdfPairMerger {
 
             PdfMerger merger = new PdfMerger(outputDocument);
             merger.merge(firstDocument, 1, firstDocument.getNumberOfPages());
+            if (normalizeFR && (firstDocument.getNumberOfPages() % 2 != 0)) {
+                addBlankPage(outputDocument, firstDocument);
+            }
             merger.merge(secondDocument, 1, secondDocument.getNumberOfPages());
         }
+    }
+
+    private void addBlankPage(PdfDocument target, PdfDocument reference) {
+        if (target == null || reference == null) {
+            return;
+        }
+        PdfPage lastPage = reference.getLastPage();
+        PageSize pageSize = lastPage != null ? new PageSize(lastPage.getPageSize()) : PageSize.A4;
+        target.addNewPage(pageSize);
     }
 
     private List<Path> listPdfFiles(Path directory) throws IOException {
@@ -148,5 +170,19 @@ public class PdfPairMerger {
     }
 
     private record Pair(Path first, Path second) {
+    }
+
+    private record MissingEntry(String folderLabel, Path folder, String fileName, String detail) {
+    }
+
+    private List<String> formatMissingEntries(List<MissingEntry> entries) {
+        List<String> lines = new ArrayList<>();
+        lines.add("Cartella\tPercorso\tFile\tDettaglio");
+        for (MissingEntry entry : entries) {
+            String folderPath = entry.folder() != null ? entry.folder().toAbsolutePath().toString() : "";
+            String detail = entry.detail() != null ? entry.detail() : "";
+            lines.add(entry.folderLabel() + "\t" + folderPath + "\t" + entry.fileName() + "\t" + detail);
+        }
+        return lines;
     }
 }

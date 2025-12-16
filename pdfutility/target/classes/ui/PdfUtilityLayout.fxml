@@ -8,7 +8,6 @@
 <?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.Spinner?>
-<?import javafx.scene.control.SpinnerValueFactory?>
 <?import javafx.scene.control.SpinnerValueFactory.DoubleSpinnerValueFactory?>
 <?import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory?>
 <?import javafx.scene.control.Tab?>
@@ -18,25 +17,19 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Priority?>
-<?import java.lang.Double?>
-<?import java.lang.Integer?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane xmlns="http://javafx.com/javafx/22.0.2" xmlns:fx="http://javafx.com/fxml"
-            fx:controller="olivieri.alex.fx.PdfUtilityFxLayoutController">
+<BorderPane xmlns="http://javafx.com/javafx/22.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="olivieri.alex.fx.PdfUtilityFxLayoutController">
   <top>
-    <HBox spacing="10" alignment="CENTER_LEFT"
-                                          style="-fx-background-color: linear-gradient(to right, rgb(31,79,156), rgb(42,124,193));">
+    <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-background-color: linear-gradient(to right, rgb(31,79,156), rgb(42,124,193));">
       <padding>
-        <Insets top="12" right="12" bottom="12" left="12"/>
+        <Insets bottom="12" left="12" right="12" top="12"/>
       </padding>
-      <Label text="Utility PDF - monitoraggio ISO 9001"
-                                                             style="-fx-font-size: 18px; -fx-text-fill: white;"/>
+      <Label style="-fx-font-size: 18px; -fx-text-fill: white;" text="Utility PDF - 2026 - V1.0"/>
       <Region fx:id="toolbarSpacer" HBox.hgrow="ALWAYS"/>
-      <Button fx:id="openAuditLogButton" text="Apri log audit"
-                                                              style="-fx-background-color: white; -fx-text-fill: rgb(31,79,156);"/>
+      <Button fx:id="openAuditLogButton" style="-fx-background-color: white; -fx-text-fill: rgb(31,79,156);" text="Apri log audit"/>
     </HBox>
   </top>
 
@@ -58,29 +51,26 @@
                                 <center>
                                   <GridPane hgap="10" vgap="10">
                                     <padding>
-                                      <Insets top="10" right="10" bottom="10" left="10"/>
+                                      <Insets bottom="10" left="10" right="10" top="10"/>
                                     </padding>
                                     <columnConstraints>
                                       <ColumnConstraints hgrow="SOMETIMES"/>
                                       <ColumnConstraints hgrow="ALWAYS"/>
                                       <ColumnConstraints hgrow="SOMETIMES"/>
                                     </columnConstraints>
-                                    <Label text="Cartella PDF:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                                    <TextField fx:id="mergeDirectoryField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-                                    <Button fx:id="mergeBrowseButton" text="Sfoglia cartella"
-                                                                                                                                                                                                                                                                                                                                            GridPane.rowIndex="0" GridPane.columnIndex="2"/>
-                                    <Label text="File di output:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                                    <TextField fx:id="mergeOutputField" text="#_merged.pdf"
-                                                                                                                                                                                                                                                                                                                                               GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
+                                    <TextField fx:id="mergeDirectoryField" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                                    <Button fx:id="mergeBrowseButton" text="Sfoglia cartella" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                                    <Label text="File di output:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                    <TextField fx:id="mergeOutputField" text="#_merged.pdf" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="1"/>
                                   </GridPane>
                                 </center>
 
                                 <bottom>
-                                  <HBox spacing="10" alignment="CENTER_RIGHT">
+                                  <HBox alignment="CENTER_RIGHT" spacing="10">
                                     <padding>
-                                      <Insets top="8" right="12" bottom="10" left="10"/>
+                                      <Insets bottom="10" left="10" right="12" top="8"/>
                                     </padding>
-                                    <ProgressIndicator fx:id="mergeProgress" visible="false" maxHeight="24" maxWidth="24"/>
+                                    <ProgressIndicator fx:id="mergeProgress" maxHeight="24" maxWidth="24" visible="false"/>
                                     <Button fx:id="mergeButton" text="Unisci"/>
                                   </HBox>
                                 </bottom>
@@ -91,30 +81,41 @@
                                 <center>
                                   <GridPane hgap="10" vgap="10">
                                     <padding>
-                                      <Insets top="10" right="10" bottom="10" left="10"/>
+                                      <Insets bottom="10" left="10" right="10" top="10"/>
                                     </padding>
-                                    <Label text="PDF sorgente:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                                    <TextField fx:id="repeatInputField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-                                    <Button fx:id="repeatBrowseButton" text="Sfoglia"
-                                                                                                                                                                                                                                                                                                                                                GridPane.rowIndex="0" GridPane.columnIndex="2"/>
-                                    <Label text="Ripetizioni:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                                    <Spinner fx:id="repeatSpinner" GridPane.rowIndex="1" GridPane.columnIndex="1">
+                                    <Label text="PDF sorgente:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                    <TextField fx:id="repeatInputField" prefHeight="25.0" prefWidth="339.0" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                                    <Button fx:id="repeatBrowseButton" text="Sfoglia" GridPane.columnIndex="2"/>
+                                    <Label text="Ripetizioni:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                    <Spinner fx:id="repeatSpinner" editable="true" prefHeight="25.0" prefWidth="106.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
                                       <valueFactory>
-                                        <SpinnerValueFactory.IntegerSpinnerValueFactory min="1" max="999" initialValue="2"/>
+                                        <SpinnerValueFactory.IntegerSpinnerValueFactory initialValue="2" max="999" min="1"/>
                                       </valueFactory>
                                     </Spinner>
-                                    <Label text="File di output:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-                                    <TextField fx:id="repeatOutputField" GridPane.rowIndex="2" GridPane.columnIndex="1"
-                                                                                                                                                                                                                                                                                                                                                GridPane.columnSpan="2"/>
+                                    <Label text="File di output:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                                    <TextField fx:id="repeatOutputField" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="2"/>
+                                    <Label GridPane.rowIndex="4" GridPane.rowSpan="2147483647"/>
+                                    <columnConstraints>
+                                      <ColumnConstraints/>
+                                      <ColumnConstraints/>
+                                      <ColumnConstraints/>
+                                    </columnConstraints>
+                                    <rowConstraints>
+                                      <RowConstraints/>
+                                      <RowConstraints/>
+                                      <RowConstraints/>
+                                      <RowConstraints/>
+                                      <RowConstraints/>
+                                    </rowConstraints>
                                   </GridPane>
                                 </center>
 
                                 <bottom>
-                                  <HBox spacing="10" alignment="CENTER_RIGHT">
+                                  <HBox alignment="CENTER_RIGHT" spacing="10">
                                     <padding>
-                                      <Insets top="8" right="12" bottom="10" left="10"/>
+                                      <Insets bottom="10" left="10" right="12" top="8"/>
                                     </padding>
-                                    <ProgressIndicator fx:id="repeatProgress" visible="false" maxHeight="24" maxWidth="24"/>
+                                    <ProgressIndicator fx:id="repeatProgress" maxHeight="24" maxWidth="24" visible="false"/>
                                     <Button fx:id="repeatButton" text="Ripeti"/>
                                   </HBox>
                                 </bottom>
@@ -125,25 +126,32 @@
                                 <center>
                                   <GridPane hgap="10" vgap="10">
                                     <padding>
-                                      <Insets top="10" right="10" bottom="10" left="10"/>
+                                      <Insets bottom="10" left="10" right="10" top="10"/>
                                     </padding>
-                                    <Label text="Prima cartella:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                                    <TextField fx:id="pairFirstField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-                                    <Button fx:id="pairFirstBrowse" text="Sfoglia"
-                                                                                                                                                                                                                                                  GridPane.rowIndex="0" GridPane.columnIndex="2"/>
-                                    <Label text="Seconda cartella:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                                    <TextField fx:id="pairSecondField" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-                                    <Button fx:id="pairSecondBrowse" text="Sfoglia"
-                                                                                                                                                                                                                                                  GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+                                    <Label text="Prima cartella:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                    <TextField fx:id="pairFirstField" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                                    <Button fx:id="pairFirstBrowse" text="Sfoglia" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                                    <Label text="Seconda cartella:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                    <TextField fx:id="pairSecondField" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                                    <Button fx:id="pairSecondBrowse" text="Sfoglia" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                                    <columnConstraints>
+                                      <ColumnConstraints/>
+                                      <ColumnConstraints/>
+                                      <ColumnConstraints/>
+                                    </columnConstraints>
+                                    <rowConstraints>
+                                      <RowConstraints/>
+                                      <RowConstraints/>
+                                    </rowConstraints>
                                   </GridPane>
                                 </center>
 
                                 <bottom>
-                                  <HBox spacing="10" alignment="CENTER_RIGHT">
+                                  <HBox alignment="CENTER_RIGHT" spacing="10">
                                     <padding>
-                                      <Insets top="8" right="12" bottom="10" left="10"/>
+                                      <Insets bottom="10" left="10" right="12" top="8"/>
                                     </padding>
-                                    <ProgressIndicator fx:id="pairProgress" visible="false" maxHeight="24" maxWidth="24"/>
+                                    <ProgressIndicator fx:id="pairProgress" maxHeight="24" maxWidth="24" visible="false"/>
                                     <Button fx:id="pairButton" text="Unisci per nome"/>
                                   </HBox>
                                 </bottom>
@@ -164,28 +172,35 @@
                                 <center>
                                   <GridPane hgap="10" vgap="10">
                                     <padding>
-                                      <Insets top="10" right="10" bottom="10" left="10"/>
+                                      <Insets bottom="10" left="10" right="10" top="10"/>
                                     </padding>
-                                    <Label text="PDF sorgente:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                                    <TextField fx:id="filterInputField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-                                    <Button fx:id="filterBrowseButton" text="Sfoglia"
-                                                                                                                                                                                                                                                                                                                                            GridPane.rowIndex="0" GridPane.columnIndex="2"/>
-                                    <RadioButton fx:id="filterRemoveOdd" text="Rimuovi pagine dispari"
-                                                                                                                                                                                                                                                                                                                                                 GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.columnSpan="3" selected="true"/>
-                                    <RadioButton fx:id="filterRemoveEven" text="Rimuovi pagine pari"
-                                                                                                                                                                                                                                                                                                                                                 GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.columnSpan="3"/>
-                                    <Label text="File di output:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
-                                    <TextField fx:id="filterOutputField" GridPane.rowIndex="3" GridPane.columnIndex="1"
-                                                                                                                                                                                                                                                                                                                                               GridPane.columnSpan="2"/>
+                                    <Label text="PDF sorgente:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                    <TextField fx:id="filterInputField" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                                    <Button fx:id="filterBrowseButton" text="Sfoglia" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                                    <RadioButton fx:id="filterRemoveOdd" selected="true" text="Rimuovi pagine dispari" GridPane.columnIndex="0" GridPane.columnSpan="3" GridPane.rowIndex="1"/>
+                                    <RadioButton fx:id="filterRemoveEven" text="Rimuovi pagine pari" GridPane.columnIndex="0" GridPane.columnSpan="3" GridPane.rowIndex="2"/>
+                                    <Label text="File di output:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                                    <TextField fx:id="filterOutputField" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="3"/>
+                                    <columnConstraints>
+                                      <ColumnConstraints/>
+                                      <ColumnConstraints/>
+                                      <ColumnConstraints/>
+                                    </columnConstraints>
+                                    <rowConstraints>
+                                      <RowConstraints/>
+                                      <RowConstraints/>
+                                      <RowConstraints/>
+                                      <RowConstraints/>
+                                    </rowConstraints>
                                   </GridPane>
                                 </center>
 
                                 <bottom>
-                                  <HBox spacing="10" alignment="CENTER_RIGHT">
+                                  <HBox alignment="CENTER_RIGHT" spacing="10">
                                     <padding>
-                                      <Insets top="8" right="12" bottom="10" left="10"/>
+                                      <Insets bottom="10" left="10" right="12" top="8"/>
                                     </padding>
-                                    <ProgressIndicator fx:id="filterProgress" visible="false" maxHeight="24" maxWidth="24"/>
+                                    <ProgressIndicator fx:id="filterProgress" maxHeight="24" maxWidth="24" visible="false"/>
                                     <Button fx:id="filterButton" text="Filtra pagine"/>
                                   </HBox>
                                 </bottom>
@@ -206,24 +221,31 @@
                                 <center>
                                   <GridPane hgap="10" vgap="10">
                                     <padding>
-                                      <Insets top="10" right="10" bottom="10" left="10"/>
+                                      <Insets bottom="10" left="10" right="10" top="10"/>
                                     </padding>
-                                    <Label text="PDF sorgente:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                                    <TextField fx:id="blankInputField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-                                    <Button fx:id="blankBrowseButton" text="Sfoglia"
-                                                                                                                                                                                                                                                            GridPane.rowIndex="0" GridPane.columnIndex="2"/>
-                                    <Label text="File di output:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                                    <TextField fx:id="blankOutputField" GridPane.rowIndex="1" GridPane.columnIndex="1"
-                                                                                                                                                                                                                                                               GridPane.columnSpan="2"/>
+                                    <Label text="PDF sorgente:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                    <TextField fx:id="blankInputField" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                                    <Button fx:id="blankBrowseButton" text="Sfoglia" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                                    <Label text="File di output:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                    <TextField fx:id="blankOutputField" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="1"/>
+                                    <columnConstraints>
+                                      <ColumnConstraints/>
+                                      <ColumnConstraints/>
+                                      <ColumnConstraints/>
+                                    </columnConstraints>
+                                    <rowConstraints>
+                                      <RowConstraints/>
+                                      <RowConstraints/>
+                                    </rowConstraints>
                                   </GridPane>
                                 </center>
 
                                 <bottom>
-                                  <HBox spacing="10" alignment="CENTER_RIGHT">
+                                  <HBox alignment="CENTER_RIGHT" spacing="10">
                                     <padding>
-                                      <Insets top="8" right="12" bottom="10" left="10"/>
+                                      <Insets bottom="10" left="10" right="12" top="8"/>
                                     </padding>
-                                    <ProgressIndicator fx:id="blankProgress" visible="false" maxHeight="24" maxWidth="24"/>
+                                    <ProgressIndicator fx:id="blankProgress" maxHeight="24" maxWidth="24" visible="false"/>
                                     <Button fx:id="blankButton" text="Inserisci pagine bianche"/>
                                   </HBox>
                                 </bottom>
@@ -234,29 +256,36 @@
                                 <center>
                                   <GridPane hgap="10" vgap="10">
                                     <padding>
-                                      <Insets top="10" right="10" bottom="10" left="10"/>
+                                      <Insets bottom="10" left="10" right="10" top="10"/>
                                     </padding>
-                                    <Label text="PDF sorgente:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                                    <TextField fx:id="conditionalInputField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-                                    <Button fx:id="conditionalBrowseButton" text="Sfoglia"
-                                                                                                                                                                                                                                                            GridPane.rowIndex="0" GridPane.columnIndex="2"/>
-                                    <Label text="Stringa:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                                    <TextField fx:id="conditionalPhraseField" GridPane.rowIndex="1" GridPane.columnIndex="1"
-                                                                                                                                                                                                                                                               GridPane.columnSpan="2"/>
-                                    <CheckBox fx:id="conditionalCaseSensitive" text="Rispetta maiuscole/minuscole"
-                                                                                                                                                                                                                                                              GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.columnSpan="3"/>
-                                    <Label text="File di output:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
-                                    <TextField fx:id="conditionalOutputField" GridPane.rowIndex="3" GridPane.columnIndex="1"
-                                                                                                                                                                                                                                                               GridPane.columnSpan="2"/>
+                                    <Label text="PDF sorgente:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                    <TextField fx:id="conditionalInputField" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                                    <Button fx:id="conditionalBrowseButton" text="Sfoglia" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                                    <Label text="Stringa:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                    <TextField fx:id="conditionalPhraseField" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="1"/>
+                                    <CheckBox fx:id="conditionalCaseSensitive" text="Rispetta maiuscole/minuscole" GridPane.columnIndex="0" GridPane.columnSpan="3" GridPane.rowIndex="2"/>
+                                    <Label text="File di output:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                                    <TextField fx:id="conditionalOutputField" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="3"/>
+                                    <columnConstraints>
+                                      <ColumnConstraints/>
+                                      <ColumnConstraints/>
+                                      <ColumnConstraints/>
+                                    </columnConstraints>
+                                    <rowConstraints>
+                                      <RowConstraints/>
+                                      <RowConstraints/>
+                                      <RowConstraints/>
+                                      <RowConstraints/>
+                                    </rowConstraints>
                                   </GridPane>
                                 </center>
 
                                 <bottom>
-                                  <HBox spacing="10" alignment="CENTER_RIGHT">
+                                  <HBox alignment="CENTER_RIGHT" spacing="10">
                                     <padding>
-                                      <Insets top="8" right="12" bottom="10" left="10"/>
+                                      <Insets bottom="10" left="10" right="12" top="8"/>
                                     </padding>
-                                    <ProgressIndicator fx:id="conditionalProgress" visible="false" maxHeight="24" maxWidth="24"/>
+                                    <ProgressIndicator fx:id="conditionalProgress" maxHeight="24" maxWidth="24" visible="false"/>
                                     <Button fx:id="conditionalButton" text="Inserisci pagine bianche"/>
                                   </HBox>
                                 </bottom>
@@ -277,24 +306,31 @@
                                 <center>
                                   <GridPane hgap="10" vgap="10">
                                     <padding>
-                                      <Insets top="10" right="10" bottom="10" left="10"/>
+                                      <Insets bottom="10" left="10" right="10" top="10"/>
                                     </padding>
-                                    <Label text="File/cartella:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                                    <TextField fx:id="optimizeInputField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-                                    <Button fx:id="optimizeBrowseButton" text="Sfoglia"
-                                                                                                                                                                                                                                                                                                                                            GridPane.rowIndex="0" GridPane.columnIndex="2"/>
-                                    <Label text="File di output:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                                    <TextField fx:id="optimizeOutputField" GridPane.rowIndex="1" GridPane.columnIndex="1"
-                                                                                                                                                                                                                                                                                                                                               GridPane.columnSpan="2"/>
+                                    <Label text="File/cartella:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                    <TextField fx:id="optimizeInputField" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                                    <Button fx:id="optimizeBrowseButton" text="Sfoglia" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                                    <Label text="File di output:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                    <TextField fx:id="optimizeOutputField" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="1"/>
+                                    <columnConstraints>
+                                      <ColumnConstraints/>
+                                      <ColumnConstraints/>
+                                      <ColumnConstraints/>
+                                    </columnConstraints>
+                                    <rowConstraints>
+                                      <RowConstraints/>
+                                      <RowConstraints/>
+                                    </rowConstraints>
                                   </GridPane>
                                 </center>
 
                                 <bottom>
-                                  <HBox spacing="10" alignment="CENTER_RIGHT">
+                                  <HBox alignment="CENTER_RIGHT" spacing="10">
                                     <padding>
-                                      <Insets top="8" right="12" bottom="10" left="10"/>
+                                      <Insets bottom="10" left="10" right="12" top="8"/>
                                     </padding>
-                                    <ProgressIndicator fx:id="optimizeProgress" visible="false" maxHeight="24" maxWidth="24"/>
+                                    <ProgressIndicator fx:id="optimizeProgress" maxHeight="24" maxWidth="24" visible="false"/>
                                     <Button fx:id="optimizeButton" text="Ottimizza"/>
                                   </HBox>
                                 </bottom>
@@ -305,27 +341,34 @@
                                 <center>
                                   <GridPane hgap="10" vgap="10">
                                     <padding>
-                                      <Insets top="10" right="10" bottom="10" left="10"/>
+                                      <Insets bottom="10" left="10" right="10" top="10"/>
                                     </padding>
-                                    <Label text="PDF sorgente:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                                    <TextField fx:id="risoInputField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-                                    <Button fx:id="risoBrowseButton" text="Sfoglia"
-                                                                                                                                                                                                                                                                                                    GridPane.rowIndex="0" GridPane.columnIndex="2"/>
-                                    <Label text="File di output:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                                    <TextField fx:id="risoOutputField" GridPane.rowIndex="1" GridPane.columnIndex="1"
-                                                                                                                                                                                                                                                                                                       GridPane.columnSpan="2"/>
-                                    <Label text="Record ID:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-                                    <TextField fx:id="risoRecordField" GridPane.rowIndex="2" GridPane.columnIndex="1"
-                                                                                                                                                                                                                                                                                                       GridPane.columnSpan="2"/>
+                                    <Label text="PDF sorgente:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                    <TextField fx:id="risoInputField" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                                    <Button fx:id="risoBrowseButton" text="Sfoglia" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                                    <Label text="File di output:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                    <TextField fx:id="risoOutputField" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="1"/>
+                                    <Label text="Record ID:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                                    <TextField fx:id="risoRecordField" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="2"/>
+                                    <columnConstraints>
+                                      <ColumnConstraints/>
+                                      <ColumnConstraints/>
+                                      <ColumnConstraints/>
+                                    </columnConstraints>
+                                    <rowConstraints>
+                                      <RowConstraints/>
+                                      <RowConstraints/>
+                                      <RowConstraints/>
+                                    </rowConstraints>
                                   </GridPane>
                                 </center>
 
                                 <bottom>
-                                  <HBox spacing="10" alignment="CENTER_RIGHT">
+                                  <HBox alignment="CENTER_RIGHT" spacing="10">
                                     <padding>
-                                      <Insets top="8" right="12" bottom="10" left="10"/>
+                                      <Insets bottom="10" left="10" right="12" top="8"/>
                                     </padding>
-                                    <ProgressIndicator fx:id="risoProgress" visible="false" maxHeight="24" maxWidth="24"/>
+                                    <ProgressIndicator fx:id="risoProgress" maxHeight="24" maxWidth="24" visible="false"/>
                                     <Button fx:id="risoButton" text="Ottimizza Riso"/>
                                   </HBox>
                                 </bottom>
@@ -346,36 +389,45 @@
                                 <center>
                                   <GridPane hgap="10" vgap="10">
                                     <padding>
-                                      <Insets top="10" right="10" bottom="10" left="10"/>
+                                      <Insets bottom="10" left="10" right="10" top="10"/>
                                     </padding>
-                                    <Label text="Cartella PDF:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                                    <TextField fx:id="folderStampDirectoryField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-                                    <Button fx:id="folderStampBrowse" text="Sfoglia"
-                                                                                                                                                                                                                                        GridPane.rowIndex="0" GridPane.columnIndex="2"/>
-                                    <Label text="Testo timbro:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                                    <TextField fx:id="folderStampTextField" GridPane.rowIndex="1" GridPane.columnIndex="1"
-                                                                                                                                                                                                                                           GridPane.columnSpan="2"/>
-                                    <Label text="Coordinata X:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-                                    <Spinner fx:id="folderStampXSpinner" GridPane.rowIndex="2" GridPane.columnIndex="1">
+                                    <Label text="Cartella PDF:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                    <TextField fx:id="folderStampDirectoryField" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                                    <Button fx:id="folderStampBrowse" text="Sfoglia" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                                    <Label text="Testo timbro:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                    <TextField fx:id="folderStampTextField" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="1"/>
+                                    <Label text="Coordinata X:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                                    <Spinner fx:id="folderStampXSpinner" GridPane.columnIndex="1" GridPane.rowIndex="2">
                                       <valueFactory>
-                                        <SpinnerValueFactory.DoubleSpinnerValueFactory min="0" max="500" initialValue="5"/>
+                                        <SpinnerValueFactory.DoubleSpinnerValueFactory initialValue="5" max="500" min="0"/>
                                       </valueFactory>
                                     </Spinner>
-                                    <Label text="Coordinata Y:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
-                                    <Spinner fx:id="folderStampYSpinner" GridPane.rowIndex="3" GridPane.columnIndex="1">
+                                    <Label text="Coordinata Y:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                                    <Spinner fx:id="folderStampYSpinner" GridPane.columnIndex="1" GridPane.rowIndex="3">
                                       <valueFactory>
-                                        <SpinnerValueFactory.DoubleSpinnerValueFactory min="0" max="500" initialValue="5"/>
+                                        <SpinnerValueFactory.DoubleSpinnerValueFactory initialValue="5" max="500" min="0"/>
                                       </valueFactory>
                                     </Spinner>
+                                    <columnConstraints>
+                                      <ColumnConstraints/>
+                                      <ColumnConstraints/>
+                                      <ColumnConstraints/>
+                                    </columnConstraints>
+                                    <rowConstraints>
+                                      <RowConstraints/>
+                                      <RowConstraints/>
+                                      <RowConstraints/>
+                                      <RowConstraints/>
+                                    </rowConstraints>
                                   </GridPane>
                                 </center>
 
                                 <bottom>
-                                  <HBox spacing="10" alignment="CENTER_RIGHT">
+                                  <HBox alignment="CENTER_RIGHT" spacing="10">
                                     <padding>
-                                      <Insets top="8" right="12" bottom="10" left="10"/>
+                                      <Insets bottom="10" left="10" right="12" top="8"/>
                                     </padding>
-                                    <ProgressIndicator fx:id="folderStampProgress" visible="false" maxHeight="24" maxWidth="24"/>
+                                    <ProgressIndicator fx:id="folderStampProgress" maxHeight="24" maxWidth="24" visible="false"/>
                                     <Button fx:id="folderStampButton" text="Applica timbro"/>
                                   </HBox>
                                 </bottom>
@@ -398,35 +450,42 @@
                       <center>
                         <GridPane hgap="10" vgap="10">
                           <padding>
-                            <Insets top="10" right="10" bottom="10" left="10"/>
+                            <Insets bottom="10" left="10" right="10" top="10"/>
                           </padding>
-                          <Label text="PDF sorgente:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                          <TextField fx:id="markerPdfField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-                          <Button fx:id="markerPdfBrowse" text="Sfoglia"
-                                                                                                                                                                                                                              GridPane.rowIndex="0" GridPane.columnIndex="2"/>
-                          <Label text="Stringa marker:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                          <TextField fx:id="markerTextField" GridPane.rowIndex="1" GridPane.columnIndex="1"
-                                                                                                                                                                                                                                 GridPane.columnSpan="2"/>
-                          <CheckBox fx:id="markerCaseSensitive" text="Rispetta maiuscole/minuscole"
-                                                                                                                                                                                                                                GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.columnSpan="3"/>
-                          <Label text="Cartella base:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
-                          <TextField fx:id="markerBaseField" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
-                          <Button fx:id="markerBaseBrowse" text="Sfoglia"
-                                                                                                                                                                                                                              GridPane.rowIndex="3" GridPane.columnIndex="2"/>
-                          <Label text="Nome cartella output:" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
-                          <TextField fx:id="markerFolderField" GridPane.rowIndex="4" GridPane.columnIndex="1"
-                                                                                                                                                                                                                                 GridPane.columnSpan="2"/>
-                          <CheckBox fx:id="markerAppendCheck" text="Aggiungi pagine se esiste"
-                                                                                                                                                                                                                                GridPane.rowIndex="5" GridPane.columnIndex="0" GridPane.columnSpan="3"/>
+                          <Label text="PDF sorgente:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                          <TextField fx:id="markerPdfField" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                          <Button fx:id="markerPdfBrowse" text="Sfoglia" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                          <Label text="Stringa marker:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                          <TextField fx:id="markerTextField" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="1"/>
+                          <CheckBox fx:id="markerCaseSensitive" text="Rispetta maiuscole/minuscole" GridPane.columnIndex="0" GridPane.columnSpan="3" GridPane.rowIndex="2"/>
+                          <Label text="Cartella base:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                          <TextField fx:id="markerBaseField" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+                          <Button fx:id="markerBaseBrowse" text="Sfoglia" GridPane.columnIndex="2" GridPane.rowIndex="3"/>
+                          <Label text="Nome cartella output:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+                          <TextField fx:id="markerFolderField" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="4"/>
+                          <CheckBox fx:id="markerAppendCheck" text="Aggiungi pagine se esiste" GridPane.columnIndex="0" GridPane.columnSpan="3" GridPane.rowIndex="5"/>
+                          <columnConstraints>
+                            <ColumnConstraints/>
+                            <ColumnConstraints/>
+                            <ColumnConstraints/>
+                          </columnConstraints>
+                          <rowConstraints>
+                            <RowConstraints/>
+                            <RowConstraints/>
+                            <RowConstraints/>
+                            <RowConstraints/>
+                            <RowConstraints/>
+                            <RowConstraints/>
+                          </rowConstraints>
                         </GridPane>
                       </center>
 
                       <bottom>
-                        <HBox spacing="10" alignment="CENTER_RIGHT">
+                        <HBox alignment="CENTER_RIGHT" spacing="10">
                           <padding>
-                            <Insets top="8" right="12" bottom="10" left="10"/>
+                            <Insets bottom="10" left="10" right="12" top="8"/>
                           </padding>
-                          <ProgressIndicator fx:id="markerProgress" visible="false" maxHeight="24" maxWidth="24"/>
+                          <ProgressIndicator fx:id="markerProgress" maxHeight="24" maxWidth="24" visible="false"/>
                           <Button fx:id="markerButton" text="Esegui split"/>
                         </HBox>
                       </bottom>
@@ -447,25 +506,32 @@
                       <center>
                         <GridPane hgap="10" vgap="10">
                           <padding>
-                            <Insets top="10" right="10" bottom="10" left="10"/>
+                            <Insets bottom="10" left="10" right="10" top="10"/>
                           </padding>
-                          <Label text="Cartella PDF:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                          <TextField fx:id="csvRenameDirectoryField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-                          <Button fx:id="csvRenameDirectoryBrowse" text="Sfoglia"
-                                                                                                                                                                                                                                                  GridPane.rowIndex="0" GridPane.columnIndex="2"/>
-                          <Label text="File CSV:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                          <TextField fx:id="csvRenameCsvField" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-                          <Button fx:id="csvRenameCsvBrowse" text="Sfoglia"
-                                                                                                                                                                                                                                                  GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+                          <Label text="Cartella PDF:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                          <TextField fx:id="csvRenameDirectoryField" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                          <Button fx:id="csvRenameDirectoryBrowse" text="Sfoglia" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                          <Label text="File CSV:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                          <TextField fx:id="csvRenameCsvField" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                          <Button fx:id="csvRenameCsvBrowse" text="Sfoglia" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                          <columnConstraints>
+                            <ColumnConstraints/>
+                            <ColumnConstraints/>
+                            <ColumnConstraints/>
+                          </columnConstraints>
+                          <rowConstraints>
+                            <RowConstraints/>
+                            <RowConstraints/>
+                          </rowConstraints>
                         </GridPane>
                       </center>
 
                       <bottom>
-                        <HBox spacing="10" alignment="CENTER_RIGHT">
+                        <HBox alignment="CENTER_RIGHT" spacing="10">
                           <padding>
-                            <Insets top="8" right="12" bottom="10" left="10"/>
+                            <Insets bottom="10" left="10" right="12" top="8"/>
                           </padding>
-                          <ProgressIndicator fx:id="csvRenameProgress" visible="false" maxHeight="24" maxWidth="24"/>
+                          <ProgressIndicator fx:id="csvRenameProgress" maxHeight="24" maxWidth="24" visible="false"/>
                           <Button fx:id="csvRenameButton" text="Rinomina"/>
                         </HBox>
                       </bottom>
@@ -476,7 +542,7 @@
                       <center>
                         <VBox spacing="10">
                           <padding>
-                            <Insets top="10" right="10" bottom="10" left="10"/>
+                            <Insets bottom="10" left="10" right="10" top="10"/>
                           </padding>
                           <HBox spacing="10">
                             <Button fx:id="csvTxtAddButton" text="Aggiungi file"/>
@@ -484,21 +550,28 @@
                           </HBox>
                           <ListView fx:id="csvTxtFileList" prefHeight="180"/>
                           <GridPane hgap="10" vgap="10">
-                            <Label text="File di output:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                            <TextField fx:id="csvTxtOutputField" GridPane.rowIndex="0" GridPane.columnIndex="1"
-                                                                                                                                                                                                                                                                       GridPane.columnSpan="2"/>
-                            <Button fx:id="csvTxtOutputBrowse" text="Sfoglia"
-                                                                                                                                                                                                                                                                    GridPane.rowIndex="0" GridPane.columnIndex="3"/>
+                            <Label text="File di output:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                            <TextField fx:id="csvTxtOutputField" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="0"/>
+                            <Button fx:id="csvTxtOutputBrowse" text="Sfoglia" GridPane.columnIndex="3" GridPane.rowIndex="0"/>
+                            <columnConstraints>
+                              <ColumnConstraints/>
+                              <ColumnConstraints/>
+                              <ColumnConstraints/>
+                              <ColumnConstraints/>
+                            </columnConstraints>
+                            <rowConstraints>
+                              <RowConstraints/>
+                            </rowConstraints>
                           </GridPane>
                         </VBox>
                       </center>
 
                       <bottom>
-                        <HBox spacing="10" alignment="CENTER_RIGHT">
+                        <HBox alignment="CENTER_RIGHT" spacing="10">
                           <padding>
-                            <Insets top="8" right="12" bottom="10" left="10"/>
+                            <Insets bottom="10" left="10" right="12" top="8"/>
                           </padding>
-                          <ProgressIndicator fx:id="csvTxtProgress" visible="false" maxHeight="24" maxWidth="24"/>
+                          <ProgressIndicator fx:id="csvTxtProgress" maxHeight="24" maxWidth="24" visible="false"/>
                           <Button fx:id="csvTxtButton" text="Unisci"/>
                         </HBox>
                       </bottom>
@@ -519,26 +592,33 @@
                       <center>
                         <GridPane hgap="10" vgap="10">
                           <padding>
-                            <Insets top="10" right="10" bottom="10" left="10"/>
+                            <Insets bottom="10" left="10" right="10" top="10"/>
                           </padding>
-                          <Label text="File CSV:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                          <TextField fx:id="csvToExcelCsvField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-                          <Button fx:id="csvToExcelCsvBrowse" text="Sfoglia"
-                                                                                                                                                                                                                                                  GridPane.rowIndex="0" GridPane.columnIndex="2"/>
-                          <Label text="File Excel:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                          <TextField fx:id="csvToExcelOutputField" GridPane.rowIndex="1" GridPane.columnIndex="1"
-                                                                                                                                                                                                                                                     GridPane.columnSpan="2"/>
-                          <Button fx:id="csvToExcelOutputBrowse" text="Sfoglia"
-                                                                                                                                                                                                                                                  GridPane.rowIndex="1" GridPane.columnIndex="3"/>
+                          <Label text="File CSV:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                          <TextField fx:id="csvToExcelCsvField" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                          <Button fx:id="csvToExcelCsvBrowse" text="Sfoglia" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                          <Label text="File Excel:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                          <TextField fx:id="csvToExcelOutputField" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="1"/>
+                          <Button fx:id="csvToExcelOutputBrowse" text="Sfoglia" GridPane.columnIndex="3" GridPane.rowIndex="1"/>
+                          <columnConstraints>
+                            <ColumnConstraints/>
+                            <ColumnConstraints/>
+                            <ColumnConstraints/>
+                            <ColumnConstraints/>
+                          </columnConstraints>
+                          <rowConstraints>
+                            <RowConstraints/>
+                            <RowConstraints/>
+                          </rowConstraints>
                         </GridPane>
                       </center>
 
                       <bottom>
-                        <HBox spacing="10" alignment="CENTER_RIGHT">
+                        <HBox alignment="CENTER_RIGHT" spacing="10">
                           <padding>
-                            <Insets top="8" right="12" bottom="10" left="10"/>
+                            <Insets bottom="10" left="10" right="12" top="8"/>
                           </padding>
-                          <ProgressIndicator fx:id="csvToExcelProgress" visible="false" maxHeight="24" maxWidth="24"/>
+                          <ProgressIndicator fx:id="csvToExcelProgress" maxHeight="24" maxWidth="24" visible="false"/>
                           <Button fx:id="csvToExcelButton" text="Converti"/>
                         </HBox>
                       </bottom>

@@ -13,6 +13,7 @@ import olivieri.alex.util.PdfFolderStamper;
 import olivieri.alex.util.PdfKeywordStamper;
 import olivieri.alex.util.PdfMarkerSplitter;
 import olivieri.alex.util.PdfMergeService;
+import olivieri.alex.util.PdfMergeService.RotationMode;
 import olivieri.alex.util.PdfOptimizer;
 import olivieri.alex.util.PdfPairMerger;
 import olivieri.alex.util.PdfPageFilter;
@@ -55,11 +56,16 @@ public final class PdfUtilityFxController {
             .useSmartMode().setFullCompressionMode(true).setCompressionLevel(CompressionConstants.BEST_COMPRESSION);
 
     public Path mergeDirectory(String directoryText, String outputText) throws Exception {
+        return mergeDirectory(directoryText, outputText, RotationMode.NONE);
+    }
+
+    public Path mergeDirectory(String directoryText, String outputText, RotationMode rotationMode) throws Exception {
         Path directory = requireDirectory(directoryText, "Seleziona una cartella che contiene i PDF.");
         Path outputPath = resolvePdfOutput(directory.toAbsolutePath(), outputText, "merged.pdf");
-        String details = "source=" + directory.toAbsolutePath();
+        RotationMode effectiveMode = rotationMode == null ? RotationMode.NONE : rotationMode;
+        String details = "source=" + directory.toAbsolutePath() + ",rotation=" + effectiveMode;
         try {
-            Path result = mergeService.mergeDirectory(directory, outputPath);
+            Path result = mergeService.mergeDirectory(directory, outputPath, effectiveMode);
             auditSuccess("PDF_MERGE", details, result);
             return result;
         } catch (Exception ex) {
@@ -83,8 +89,8 @@ public final class PdfUtilityFxController {
         }
     }
 
-    public Path insertBlankAfterPhrase(String inputText, String phrase, boolean caseSensitive, String outputText)
-            throws Exception {
+    public Path insertBlankAfterPhrase(String inputText, String phrase, boolean caseSensitive, boolean oddPageOnly,
+            String outputText) throws Exception {
         Path inputPath = requireRegularFile(inputText, "Seleziona un file PDF da elaborare.", "Il file specificato non esiste.");
         String trimmedPhrase = safeTrim(phrase);
         if (trimmedPhrase.isEmpty()) {
@@ -93,10 +99,10 @@ public final class PdfUtilityFxController {
         Path outputPath = resolvePdfOutput(inputPath.toAbsolutePath().getParent(), outputText,
                 buildDefaultBlankAfterPhraseName(inputPath, trimmedPhrase));
         String details = "input=" + inputPath.toAbsolutePath() + ",phrase=" + trimmedPhrase + ",caseSensitive="
-                + caseSensitive;
+                + caseSensitive + ",oddPageOnly=" + oddPageOnly;
         try {
             Path result = conditionalBlankPageInserter.insertAfterPhrase(inputPath, outputPath, trimmedPhrase,
-                    caseSensitive);
+                    caseSensitive, oddPageOnly);
             auditSuccess("PDF_INSERT_AFTER_PHRASE", details, result);
             return result;
         } catch (Exception ex) {
@@ -170,12 +176,14 @@ public final class PdfUtilityFxController {
         }
     }
 
-    public PdfPairMerger.Result mergeMatchingPairs(String firstDirText, String secondDirText) throws Exception {
+    public PdfPairMerger.Result mergeMatchingPairs(String firstDirText, String secondDirText, boolean normalizeFR)
+            throws Exception {
         Path firstDir = requireDirectory(firstDirText, "Seleziona la prima cartella.");
         Path secondDir = requireDirectory(secondDirText, "Seleziona la seconda cartella.");
-        String details = "first=" + firstDir.toAbsolutePath() + ",second=" + secondDir.toAbsolutePath();
+        String details = "first=" + firstDir.toAbsolutePath() + ",second=" + secondDir.toAbsolutePath()
+                + ",normalizeFR=" + normalizeFR;
         try {
-            PdfPairMerger.Result result = pairMerger.mergeMatchingPairs(firstDir, secondDir);
+            PdfPairMerger.Result result = pairMerger.mergeMatchingPairs(firstDir, secondDir, normalizeFR);
             auditSuccess("PDF_PAIR_MERGE", details, result.getOutputDirectory());
             return result;
         } catch (Exception ex) {

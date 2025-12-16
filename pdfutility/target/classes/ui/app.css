@@ -1,0 +1,44 @@
+.label {
+    -fx-wrap-text: true;
+    -fx-text-alignment: left;
+    -fx-pref-height: USE_COMPUTED_SIZE;
+    -fx-min-height: 0;
+    -fx-max-height: Double.MAX_VALUE;
+}
+
+.tab-pane {
+    -fx-pref-height: USE_COMPUTED_SIZE;
+    -fx-min-height: 0;
+    -fx-max-height: Double.MAX_VALUE;
+}
+
+.tab-pane .tab-content-area {
+    -fx-pref-height: USE_COMPUTED_SIZE;
+    -fx-min-height: 0;
+    -fx-max-height: Double.MAX_VALUE;
+}
+
+
+.root,
+.border-pane,
+.border-pane>*,
+.stack-pane,
+.anchor-pane {
+    -fx-pref-height: USE_COMPUTED_SIZE;
+    -fx-pref-width: USE_COMPUTED_SIZE;
+    -fx-min-height: 0;
+    -fx-min-width: 0;
+    -fx-max-height: Double.MAX_VALUE;
+    -fx-max-width: Double.MAX_VALUE;
+}
+
+.grid-pane,
+.vbox,
+.hbox {
+    -fx-pref-height: USE_COMPUTED_SIZE;
+    -fx-pref-width: USE_COMPUTED_SIZE;
+    -fx-max-height: Double.MAX_VALUE;
+    -fx-max-width: Double.MAX_VALUE;
+    -fx-min-height: 0;
+    -fx-min-width: 0;
+}

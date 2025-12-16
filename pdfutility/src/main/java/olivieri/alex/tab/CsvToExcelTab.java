@@ -103,6 +103,9 @@ public final class CsvToExcelTab {
         JPanel container = new JPanel(new BorderLayout(10, 10));
         container.add(formPanel, BorderLayout.CENTER);
         container.add(convertButton, BorderLayout.PAGE_END);
+        JLabel descriptionLabel = new JLabel("Trasforma un file CSV in un foglio Excel (.xlsx) pronto all'uso.");
+        descriptionLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 10, 0));
+        container.add(descriptionLabel, BorderLayout.NORTH);
         container.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
         return container;
     }

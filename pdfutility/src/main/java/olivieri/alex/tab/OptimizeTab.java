@@ -61,6 +61,9 @@ public final class OptimizeTab {
         JPanel container = new JPanel(new BorderLayout(10, 10));
         container.add(formPanel, BorderLayout.CENTER);
         container.add(optimizeButton, BorderLayout.PAGE_END);
+        JLabel descriptionLabel = new JLabel("Riduce dimensione e ottimizza le risorse del PDF mantenendo la qualità.");
+        descriptionLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 10, 0));
+        container.add(descriptionLabel, BorderLayout.NORTH);
         container.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
         return container;
     }

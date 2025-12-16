@@ -59,6 +59,9 @@ public final class MergeTab {
         JPanel container = new JPanel(new BorderLayout(10, 10));
         container.add(formPanel, BorderLayout.CENTER);
         container.add(mergeButton, BorderLayout.PAGE_END);
+        JLabel descriptionLabel = new JLabel("Combina tutti i PDF in una cartella in un unico documento.");
+        descriptionLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 10, 0));
+        container.add(descriptionLabel, BorderLayout.NORTH);
         container.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
         return container;
     }

@@ -65,6 +65,9 @@ public final class PairMergeTab {
         JPanel container = new JPanel(new BorderLayout(10, 10));
         container.add(formPanel, BorderLayout.CENTER);
         container.add(mergeButton, BorderLayout.PAGE_END);
+        JLabel descriptionLabel = new JLabel("Unisce i PDF corrispondenti contenuti nelle due cartelle selezionate.");
+        descriptionLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 10, 0));
+        container.add(descriptionLabel, BorderLayout.NORTH);
         container.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
         return container;
     }

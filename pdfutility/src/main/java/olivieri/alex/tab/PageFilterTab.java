@@ -85,6 +85,9 @@ public final class PageFilterTab {
         JPanel container = new JPanel(new BorderLayout(10, 10));
         container.add(formPanel, BorderLayout.CENTER);
         container.add(processButton, BorderLayout.PAGE_END);
+        JLabel descriptionLabel = new JLabel("Rimuove automaticamente le pagine pari o dispari selezionate.");
+        descriptionLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 10, 0));
+        container.add(descriptionLabel, BorderLayout.NORTH);
         container.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
         return container;
     }

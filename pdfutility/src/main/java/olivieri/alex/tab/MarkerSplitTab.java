@@ -134,6 +134,9 @@ public final class MarkerSplitTab {
         JPanel container = new JPanel(new BorderLayout(10, 10));
         container.add(formPanel, BorderLayout.CENTER);
         container.add(splitButton, BorderLayout.PAGE_END);
+        JLabel descriptionLabel = new JLabel("Divide il PDF dove compare il marker e salva ogni blocco.");
+        descriptionLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 10, 0));
+        container.add(descriptionLabel, BorderLayout.NORTH);
         container.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
         return container;
     }

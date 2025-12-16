@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/22.0.2" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="olivieri.alex.fx.tab.FxRisoTabContentController">
+  <center>
+    <GridPane hgap="10" vgap="10">
+      <padding>
+        <Insets bottom="10" left="10" right="10" top="10"/>
+      </padding>
+      <Label text="PDF sorgente:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+      <TextField fx:id="risoInputField" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+      <Button fx:id="risoBrowseButton" text="Seleziona PDF" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+      <Label text="File di output:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+      <TextField fx:id="risoOutputField" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="1"/>
+      <Label text="Record ID:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+      <TextField fx:id="risoRecordField" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="2"/>
+    </GridPane>
+  </center>
+
+  <bottom>
+    <HBox alignment="CENTER_RIGHT" spacing="10">
+      <padding>
+        <Insets bottom="10" left="10" right="12" top="8"/>
+      </padding>
+      <ProgressIndicator fx:id="risoProgress" maxHeight="24" maxWidth="24" visible="false"/>
+      <Button fx:id="risoButton" text="Ottimizza Riso"/>
+    </HBox>
+  </bottom>
+</BorderPane>

@@ -21,21 +21,23 @@ public class PdfConditionalBlankPageInserter {
 
     /**
      * Inserts a blank page after every page whose extracted text contains the
-     * supplied phrase.
+     * supplied phrase, optionally restricting the insertion to odd pages.
      *
      * @param inputFile     source PDF
      * @param outputFile    destination PDF
      * @param phrase        text to search
      * @param caseSensitive true to use exact casing, false for case-insensitive
      *                      search
+     * @param oddPageOnly   true to insert blank pages only when the phrase is
+     *                      found on an odd-numbered page
      * @return the produced file path
      * @throws IOException              when IO problems occur
      * @throws IllegalArgumentException if inputs are invalid
      */
-    public Path insertAfterPhrase(Path inputFile, Path outputFile, String phrase, boolean caseSensitive)
-            throws IOException {
-        String details = "input=" + inputFile + ",phrase=" + phrase + ",caseSensitive=" + caseSensitive + ",output="
-                + outputFile;
+    public Path insertAfterPhrase(Path inputFile, Path outputFile, String phrase, boolean caseSensitive,
+            boolean oddPageOnly) throws IOException {
+        String details = "input=" + inputFile + ",phrase=" + phrase + ",caseSensitive=" + caseSensitive
+                + ",oddPageOnly=" + oddPageOnly + ",output=" + outputFile;
         try {
             if (inputFile == null || !Files.isRegularFile(inputFile)) {
                 throw new IllegalArgumentException("Percorso del PDF non valido.");
@@ -63,8 +65,10 @@ public class PdfConditionalBlankPageInserter {
                             new SimpleTextExtractionStrategy());
                     String textToCheck = caseSensitive ? pageContent : pageContent.toLowerCase();
                     if (textToCheck.contains(normalizedPhrase)) {
-                        PageSize pageSize = new PageSize(source.getPage(pageIndex).getPageSize());
-                        target.addNewPage(pageSize);
+                        if (!oddPageOnly || pageIndex % 2 == 1) {
+                            PageSize pageSize = new PageSize(source.getPage(pageIndex).getPageSize());
+                            target.addNewPage(pageSize);
+                        }
                     }
                 }
             }

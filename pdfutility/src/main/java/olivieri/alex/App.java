@@ -209,7 +209,7 @@ public class App {
     }
 
     public void startInsertBlankAfterPhrase(JFrame parent, String inputText, String phraseText, boolean caseSensitive,
-            String outputText, JButton processButton) {
+            boolean oddPageOnly, String outputText, JButton processButton) {
         String trimmedInput = inputText == null ? "" : inputText.trim();
         if (trimmedInput.isEmpty()) {
             JOptionPane.showMessageDialog(parent, "Seleziona un file PDF da elaborare.", "Attenzione",
@@ -244,13 +244,14 @@ public class App {
 
         Path phraseInput = inputPath.toAbsolutePath();
         Path phraseOutput = outputPath;
-        String phraseDetails = "input=" + phraseInput + ",phrase=" + trimmedPhrase + ",caseSensitive=" + caseSensitive;
+        String phraseDetails = "input=" + phraseInput + ",phrase=" + trimmedPhrase + ",caseSensitive=" + caseSensitive
+                + ",oddPageOnly=" + oddPageOnly;
 
         SwingWorker<Path, Void> worker = new SwingWorker<>() {
             @Override
             protected Path doInBackground() throws Exception {
-                return conditionalBlankPageInserter.insertAfterPhrase(inputPath, outputPath, trimmedPhrase,
-                        caseSensitive);
+                return conditionalBlankPageInserter.insertAfterPhrase(inputPath, outputPath, trimmedPhrase, caseSensitive,
+                        oddPageOnly);
             }
 
             @Override
@@ -431,7 +432,7 @@ public class App {
         SwingWorker<PdfPairMerger.Result, Void> worker = new SwingWorker<>() {
             @Override
             protected PdfPairMerger.Result doInBackground() throws Exception {
-                return pairMerger.mergeMatchingPairs(firstDir, secondDir);
+                return pairMerger.mergeMatchingPairs(firstDir, secondDir, false);
             }
 
             @Override

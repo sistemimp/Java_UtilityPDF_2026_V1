@@ -1,0 +1,1 @@
+cd pdfutility && mvn -P installer clean package

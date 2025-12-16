@@ -112,9 +112,16 @@ public final class CsvTxtMergeTab {
         bottomPanel.add(outputPanel, BorderLayout.CENTER);
         bottomPanel.add(mergeButton, BorderLayout.PAGE_END);
 
+        JLabel descriptionLabel = new JLabel(
+                "Unisce più file CSV o TXT in un unico file consolidato di testo.");
+        descriptionLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 10, 0));
+
         JPanel container = new JPanel(new BorderLayout(10, 10));
         container.add(listPanel, BorderLayout.CENTER);
-        container.add(actionsPanel, BorderLayout.PAGE_START);
+        JPanel northPanel = new JPanel(new BorderLayout());
+        northPanel.add(descriptionLabel, BorderLayout.NORTH);
+        northPanel.add(actionsPanel, BorderLayout.SOUTH);
+        container.add(northPanel, BorderLayout.PAGE_START);
         container.add(bottomPanel, BorderLayout.PAGE_END);
         container.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
         return container;

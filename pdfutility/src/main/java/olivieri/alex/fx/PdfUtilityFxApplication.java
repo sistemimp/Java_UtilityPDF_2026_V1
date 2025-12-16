@@ -17,6 +17,7 @@ public final class PdfUtilityFxApplication extends Application {
             layoutController.setStage(stage);
 
             Scene scene = new Scene(root, 900, 600);
+            scene.getStylesheets().add(getClass().getResource("/ui/app.css").toExternalForm());
             stage.setScene(scene);
             stage.setTitle("Utility PDF");
             stage.show();

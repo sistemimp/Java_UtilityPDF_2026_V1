@@ -88,6 +88,10 @@ public final class RisoOptimizeTab {
         JPanel container = new JPanel(new BorderLayout(10, 10));
         container.add(formPanel, BorderLayout.CENTER);
         container.add(optimizeButton, BorderLayout.PAGE_END);
+        JLabel descriptionLabel = new JLabel(
+                "Converte e compatta i PDF nel formato PDF/A-3B ottimizzato per la Riso GL9730.");
+        descriptionLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 10, 0));
+        container.add(descriptionLabel, BorderLayout.NORTH);
         container.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
         return container;
     }
