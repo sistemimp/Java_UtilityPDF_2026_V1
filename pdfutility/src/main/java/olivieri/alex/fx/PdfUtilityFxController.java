@@ -6,6 +6,8 @@ import com.itextpdf.kernel.pdf.WriterProperties;
 import olivieri.alex.quality.AuditLogger;
 import olivieri.alex.util.CsvToExcelConverter;
 import olivieri.alex.util.CsvTxtMerger;
+import olivieri.alex.util.DuFileMerger;
+import olivieri.alex.util.PdfAlternatingMergeService;
 import olivieri.alex.util.PdfBlankPageInserter;
 import olivieri.alex.util.PdfConditionalBlankPageInserter;
 import olivieri.alex.util.PdfCsvRenamer;
@@ -13,13 +15,16 @@ import olivieri.alex.util.PdfFolderStamper;
 import olivieri.alex.util.PdfKeywordStamper;
 import olivieri.alex.util.PdfMarkerSplitter;
 import olivieri.alex.util.PdfMergeService;
+import olivieri.alex.util.PdfMergeService.BatchMergeResult;
 import olivieri.alex.util.PdfMergeService.RotationMode;
 import olivieri.alex.util.PdfOptimizer;
 import olivieri.alex.util.PdfPairMerger;
 import olivieri.alex.util.PdfPageFilter;
+import olivieri.alex.util.PdfQrRenamer;
 import olivieri.alex.util.PdfRepeater;
 import olivieri.alex.util.PdfStringPageRemover;
 import olivieri.alex.util.PdfToWordConverter;
+import olivieri.alex.util.RisoComcolorGd9630Optimizer;
 import olivieri.alex.util.RisoGl9730Optimizer;
 
 import java.awt.Desktop;
@@ -32,18 +37,23 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Provides core PDF operations and helpers for the JavaFX UI, keeping logging consistent with the legacy app.
+ * Provides core PDF operations and helpers for the JavaFX UI, keeping logging
+ * consistent with the legacy app.
  */
 public final class PdfUtilityFxController {
     private final PdfMergeService mergeService = new PdfMergeService();
     private final PdfOptimizer optimizer = new PdfOptimizer();
     private final RisoGl9730Optimizer risoOptimizer = new RisoGl9730Optimizer();
+    private final RisoComcolorGd9630Optimizer risoComcolorGd9630Optimizer = new RisoComcolorGd9630Optimizer();
     private final PdfRepeater repeater = new PdfRepeater();
     private final PdfPageFilter pageFilter = new PdfPageFilter();
     private final PdfPairMerger pairMerger = new PdfPairMerger();
+    private final PdfAlternatingMergeService alternatingMergeService = new PdfAlternatingMergeService();
     private final PdfCsvRenamer csvRenamer = new PdfCsvRenamer();
+    private final PdfQrRenamer qrRenamer = new PdfQrRenamer();
     private final CsvToExcelConverter csvToExcelConverter = new CsvToExcelConverter();
     private final CsvTxtMerger csvTxtMerger = new CsvTxtMerger();
+    private final DuFileMerger duFileMerger = new DuFileMerger();
     private final PdfFolderStamper folderStamper = new PdfFolderStamper();
     private final PdfKeywordStamper keywordStamper = new PdfKeywordStamper();
     private final PdfMarkerSplitter markerSplitter = new PdfMarkerSplitter();
@@ -74,8 +84,32 @@ public final class PdfUtilityFxController {
         }
     }
 
+    public BatchMergeResult mergeDirectoryInBatches(String directoryText, String outputDirectoryText, int groupSize,
+            String outputPrefix, RotationMode rotationMode) throws Exception {
+        if (groupSize < 1) {
+            throw new IllegalArgumentException("Il numero di PDF per gruppo deve essere almeno 1.");
+        }
+        Path directory = requireDirectory(directoryText, "Seleziona una cartella che contiene i PDF.");
+        Path outputDirectory = resolveDirectoryOutput(directory.toAbsolutePath(), outputDirectoryText,
+                buildDefaultBatchMergeDirectoryName(directory));
+        RotationMode effectiveMode = rotationMode == null ? RotationMode.NONE : rotationMode;
+        String sanitizedPrefix = safeTrim(outputPrefix);
+        String details = "source=" + directory.toAbsolutePath() + ",outputDirectory=" + outputDirectory
+                + ",groupSize=" + groupSize + ",prefix=" + sanitizedPrefix + ",rotation=" + effectiveMode;
+        try {
+            BatchMergeResult result = mergeService.mergeDirectoryInBatches(directory, outputDirectory, groupSize,
+                    sanitizedPrefix, effectiveMode);
+            auditSuccess("PDF_MERGE_BATCH", details, result.getOutputDirectory());
+            return result;
+        } catch (Exception ex) {
+            auditFailure("PDF_MERGE_BATCH", details, outputDirectory, ex);
+            throw ex;
+        }
+    }
+
     public Path insertBlankPages(String inputText, String outputText) throws Exception {
-        Path inputPath = requireRegularFile(inputText, "Seleziona un file PDF da elaborare.", "Il file specificato non esiste.");
+        Path inputPath = requireRegularFile(inputText, "Seleziona un file PDF da elaborare.",
+                "Il file specificato non esiste.");
         Path outputPath = resolvePdfOutput(inputPath.toAbsolutePath().getParent(), outputText,
                 buildDefaultBlankPagesName(inputPath));
         String details = "input=" + inputPath.toAbsolutePath();
@@ -91,7 +125,8 @@ public final class PdfUtilityFxController {
 
     public Path insertBlankAfterPhrase(String inputText, String phrase, boolean caseSensitive, boolean oddPageOnly,
             String outputText) throws Exception {
-        Path inputPath = requireRegularFile(inputText, "Seleziona un file PDF da elaborare.", "Il file specificato non esiste.");
+        Path inputPath = requireRegularFile(inputText, "Seleziona un file PDF da elaborare.",
+                "Il file specificato non esiste.");
         String trimmedPhrase = safeTrim(phrase);
         if (trimmedPhrase.isEmpty()) {
             throw new IllegalArgumentException("Inserisci la parola o frase da cercare.");
@@ -137,7 +172,8 @@ public final class PdfUtilityFxController {
     }
 
     public Path optimizeRiso(String inputText, String outputText, String recordIdText) throws Exception {
-        Path inputPath = requireRegularFile(inputText, "Seleziona un PDF da convertire.", "Il file specificato non esiste.");
+        Path inputPath = requireRegularFile(inputText, "Seleziona un PDF da convertire.",
+                "Il file specificato non esiste.");
         Path outputPath = resolvePdfOutput(inputPath.toAbsolutePath().getParent(), outputText,
                 buildDefaultRisoOptimizedName(inputPath));
         String sanitizedRecordId = safeTrim(recordIdText);
@@ -148,11 +184,25 @@ public final class PdfUtilityFxController {
         return result;
     }
 
+    public Path optimizeRisoComcolorGd9630(String inputText, String outputText, String recordIdText) throws Exception {
+        Path inputPath = requireRegularFile(inputText, "Seleziona un PDF da convertire.",
+                "Il file specificato non esiste.");
+        Path outputPath = resolvePdfOutput(inputPath.toAbsolutePath().getParent(), outputText,
+                buildDefaultRisoComcolorGd9630OptimizedName(inputPath));
+        String sanitizedRecordId = safeTrim(recordIdText);
+        Path inputAbsolute = inputPath.toAbsolutePath();
+        String details = "input=" + inputAbsolute + ",output=" + outputPath + ",recordId=" + sanitizedRecordId;
+        Path result = risoComcolorGd9630Optimizer.optimize(inputPath, outputPath, sanitizedRecordId);
+        auditSuccess("PDF_RISO_GD9630_OPTIMIZATION", details, result);
+        return result;
+    }
+
     public Path repeatPdf(String inputText, int repetitions, String outputText) throws Exception {
         if (repetitions < 1) {
             throw new IllegalArgumentException("Le ripetizioni devono essere almeno 1.");
         }
-        Path inputPath = requireRegularFile(inputText, "Seleziona un file PDF da ripetere.", "Il file specificato non esiste.");
+        Path inputPath = requireRegularFile(inputText, "Seleziona un file PDF da ripetere.",
+                "Il file specificato non esiste.");
         Path outputPath = resolvePdfOutput(inputPath.toAbsolutePath().getParent(), outputText,
                 buildDefaultRepeatedName(inputPath, repetitions));
         String details = "input=" + inputPath.toAbsolutePath() + ",repetitions=" + Math.max(repetitions, 1);
@@ -161,8 +211,41 @@ public final class PdfUtilityFxController {
         return result;
     }
 
+    public Path alternatingMix(String firstInputText, String secondInputText, int firstChunkSize, int secondChunkSize,
+            String outputText) throws Exception {
+        if (firstChunkSize < 1 || secondChunkSize < 1) {
+            throw new IllegalArgumentException("Il numero di pagine per blocco deve essere almeno 1.");
+        }
+
+        Path firstPath = requireRegularFile(firstInputText, "Seleziona il primo file PDF.",
+                "Il file specificato non esiste.");
+        Path secondPath = requireRegularFile(secondInputText, "Seleziona il secondo file PDF.",
+                "Il file specificato non esiste.");
+
+        Path normalizedFirst = firstPath.toAbsolutePath().normalize();
+        Path normalizedSecond = secondPath.toAbsolutePath().normalize();
+        if (normalizedFirst.equals(normalizedSecond)) {
+            throw new IllegalArgumentException("Seleziona due file diversi.");
+        }
+
+        Path outputPath = resolvePdfOutput(firstPath.getParent(), outputText,
+                buildDefaultAlternatingMixName(firstPath));
+        String details = "first=" + normalizedFirst + ",second=" + normalizedSecond + ",firstChunk=" + firstChunkSize
+                + ",secondChunk=" + secondChunkSize;
+        try {
+            Path result = alternatingMergeService.mergeAlternating(firstPath, secondPath, outputPath, firstChunkSize,
+                    secondChunkSize);
+            auditSuccess("PDF_ALTERNATING_MIX", details, result);
+            return result;
+        } catch (Exception ex) {
+            auditFailure("PDF_ALTERNATING_MIX", details, outputPath, ex);
+            throw ex;
+        }
+    }
+
     public Path filterPages(String inputText, PdfPageFilter.Mode mode, String outputText) throws Exception {
-        Path inputPath = requireRegularFile(inputText, "Seleziona un file PDF da filtrare.", "Il file specificato non esiste.");
+        Path inputPath = requireRegularFile(inputText, "Seleziona un file PDF da filtrare.",
+                "Il file specificato non esiste.");
         Path outputPath = resolvePdfOutput(inputPath.toAbsolutePath().getParent(), outputText,
                 buildDefaultFilteredName(inputPath, mode));
         String details = "input=" + inputPath.toAbsolutePath() + ",mode=" + mode;
@@ -194,7 +277,8 @@ public final class PdfUtilityFxController {
 
     public PdfStringPageRemover.Result removePagesContaining(String inputText, String outputText, String query,
             boolean caseSensitive) throws Exception {
-        Path inputPath = requireRegularFile(inputText, "Seleziona un file PDF sorgente.", "Il file specificato non esiste.");
+        Path inputPath = requireRegularFile(inputText, "Seleziona un file PDF sorgente.",
+                "Il file specificato non esiste.");
         String trimmedQuery = safeTrim(query);
         if (trimmedQuery.isEmpty()) {
             throw new IllegalArgumentException("Inserisci la stringa da cercare.");
@@ -204,7 +288,8 @@ public final class PdfUtilityFxController {
         String details = "input=" + inputPath.toAbsolutePath() + ",query=" + trimmedQuery + ",caseSensitive="
                 + caseSensitive;
         try {
-            PdfStringPageRemover.Result result = stringPageRemover.removePagesContaining(inputPath, outputPath, trimmedQuery,
+            PdfStringPageRemover.Result result = stringPageRemover.removePagesContaining(inputPath, outputPath,
+                    trimmedQuery,
                     caseSensitive);
             auditSuccess("PDF_STRING_REMOVAL", details, result.getOutputFile());
             return result;
@@ -233,7 +318,8 @@ public final class PdfUtilityFxController {
         String details = "input=" + pdfPath.toAbsolutePath() + ",marker=" + sanitizedMarker + ",folder=" + folderName
                 + ",append=" + appendToExisting;
         try {
-            PdfMarkerSplitter.Result result = markerSplitter.splitByMarker(pdfPath, baseDir, folderName, sanitizedMarker,
+            PdfMarkerSplitter.Result result = markerSplitter.splitByMarker(pdfPath, baseDir, folderName,
+                    sanitizedMarker,
                     caseSensitive, appendToExisting);
             auditSuccess("PDF_MARKER_SPLIT", details, result.getOutputDirectory());
             return result;
@@ -244,15 +330,42 @@ public final class PdfUtilityFxController {
     }
 
     public PdfCsvRenamer.Result renameFromCsv(String directoryText, String csvText) throws Exception {
+        return renameFromCsv(directoryText, csvText, false);
+    }
+
+    public PdfCsvRenamer.Result renameFromCsv(String directoryText, String csvText, boolean directMoveRename)
+            throws Exception {
         Path directory = requireDirectory(directoryText, "Seleziona la cartella PDF.");
         Path csvPath = requireRegularFile(csvText, "Seleziona il file CSV.", "Il file CSV non esiste.");
-        String details = "directory=" + directory.toAbsolutePath() + ",csv=" + csvPath.toAbsolutePath();
+        String details = "directory=" + directory.toAbsolutePath() + ",csv=" + csvPath.toAbsolutePath()
+                + ",directMoveRename=" + directMoveRename;
         try {
-            PdfCsvRenamer.Result result = csvRenamer.renameFromCsv(directory, csvPath);
+            PdfCsvRenamer.Result result = csvRenamer.renameFromCsv(directory, csvPath, directMoveRename);
             auditSuccess("PDF_CSV_RENAME", details, directory.toAbsolutePath());
             return result;
         } catch (Exception ex) {
             auditFailure("PDF_CSV_RENAME", details, directory.toAbsolutePath(), ex);
+            throw ex;
+        }
+    }
+
+    public PdfQrRenamer.Result renameByQr(String inputDirectoryText, String outputDirectoryText) throws Exception {
+        Path inputDirectory = requireDirectory(inputDirectoryText, "Seleziona la cartella contenente i PDF.");
+        String trimmedOutput = safeTrim(outputDirectoryText);
+        if (trimmedOutput.isEmpty()) {
+            throw new IllegalArgumentException("Specificare la cartella di output.");
+        }
+        Path outputDirectory = toPath(trimmedOutput, "Percorso cartella di output non valido.");
+        if (Files.exists(outputDirectory) && !Files.isDirectory(outputDirectory)) {
+            throw new IllegalArgumentException("La cartella di output non è valida.");
+        }
+        String details = "input=" + inputDirectory.toAbsolutePath() + ",output=" + outputDirectory.toAbsolutePath();
+        try {
+            PdfQrRenamer.Result result = qrRenamer.renameByQr(inputDirectory, outputDirectory);
+            auditSuccess("PDF_QR_RENAME", details, outputDirectory.toAbsolutePath());
+            return result;
+        } catch (Exception ex) {
+            auditFailure("PDF_QR_RENAME", details, outputDirectory.toAbsolutePath(), ex);
             throw ex;
         }
     }
@@ -302,6 +415,37 @@ public final class PdfUtilityFxController {
         }
     }
 
+    public Path mergeDuFiles(List<String> inputs, String outputText) throws Exception {
+        if (inputs == null || inputs.isEmpty()) {
+            throw new IllegalArgumentException("Seleziona almeno un file DU da unire.");
+        }
+        List<Path> paths = new ArrayList<>();
+        List<String> sanitizedInputs = new ArrayList<>();
+        for (String candidate : inputs) {
+            String trimmed = safeTrim(candidate);
+            if (trimmed.isEmpty()) {
+                continue;
+            }
+            Path validated = requireDuFile(trimmed);
+            paths.add(validated);
+            sanitizedInputs.add(validated.toAbsolutePath().toString());
+        }
+        if (paths.size() < 2) {
+            throw new IllegalArgumentException("Seleziona almeno due file DU validi da unire.");
+        }
+        Path firstPath = paths.get(0);
+        Path outputPath = resolveDuOutput(firstPath.getParent(), outputText, buildDefaultMergedDuName(firstPath));
+        String details = "inputs=" + sanitizedInputs + ",output=" + outputPath;
+        try {
+            Path result = duFileMerger.merge(paths, outputPath);
+            auditSuccess("DU_MERGE", details, result);
+            return result;
+        } catch (Exception ex) {
+            auditFailure("DU_MERGE", details, outputPath, ex);
+            throw ex;
+        }
+    }
+
     public PdfFolderStamper.Result stampFolder(String directoryText, String stampText, float x, float y)
             throws Exception {
         Path directory = requireDirectory(directoryText, "Seleziona la cartella dei PDF.");
@@ -320,7 +464,8 @@ public final class PdfUtilityFxController {
         }
     }
 
-    public PdfKeywordStamper.Result stampKeyword(String inputText, String outputText, String keywordText, String stampText,
+    public PdfKeywordStamper.Result stampKeyword(String inputText, String outputText, String keywordText,
+            String stampText,
             boolean caseSensitive, float x, float y) throws Exception {
         Path inputPath = requireRegularFile(inputText, "Seleziona un file PDF da elaborare.",
                 "Il file specificato non esiste.");
@@ -399,6 +544,15 @@ public final class PdfUtilityFxController {
         return resolved.normalize();
     }
 
+    Path resolveDuOutput(Path baseDirectory, String outputText, String defaultName) {
+        Path resolved = resolveTextOutput(baseDirectory, outputText, defaultName);
+        String filename = resolved.getFileName().toString();
+        if (!filename.toLowerCase(Locale.ROOT).endsWith(".du")) {
+            resolved = resolved.resolveSibling(filename + ".DU");
+        }
+        return resolved.normalize();
+    }
+
     Path resolveExcelOutput(Path csvPath, String outputText) {
         Path base = csvPath != null ? csvPath.toAbsolutePath().getParent() : Paths.get("").toAbsolutePath();
         String sanitized = outputText == null ? "" : outputText.trim();
@@ -442,6 +596,14 @@ public final class PdfUtilityFxController {
         return resolved.normalize();
     }
 
+    Path resolveDirectoryOutput(Path baseDirectory, String outputText, String defaultName) {
+        Path base = baseDirectory != null ? baseDirectory : Paths.get("").toAbsolutePath();
+        String sanitized = outputText == null ? "" : outputText.trim();
+        Path candidate = sanitized.isEmpty() ? base.resolve(defaultName) : Paths.get(sanitized);
+        Path resolved = candidate.isAbsolute() ? candidate : base.resolve(candidate);
+        return resolved.normalize();
+    }
+
     public String buildDefaultBlankPagesName(Path inputPath) {
         String filename = inputPath.getFileName().toString();
         int dotIndex = filename.lastIndexOf('.');
@@ -472,11 +634,46 @@ public final class PdfUtilityFxController {
         return baseName + "_riso_gl9730.pdf";
     }
 
+    public String buildDefaultRisoComcolorGd9630OptimizedName(Path inputPath) {
+        String filename = inputPath.getFileName().toString();
+        int dotIndex = filename.lastIndexOf('.');
+        String baseName = dotIndex > 0 ? filename.substring(0, dotIndex) : filename;
+        return baseName + "_riso_comcolor_gd9630.pdf";
+    }
+
     public String buildDefaultRepeatedName(Path inputPath, int repetitions) {
         String filename = inputPath.getFileName().toString();
         int dotIndex = filename.lastIndexOf('.');
         String baseName = dotIndex > 0 ? filename.substring(0, dotIndex) : filename;
         return baseName + "_x" + Math.max(repetitions, 1) + ".pdf";
+    }
+
+    public String buildDefaultAlternatingMixName(Path inputPath) {
+        String baseName = "alternating_mix";
+        if (inputPath != null && inputPath.getFileName() != null) {
+            String filename = inputPath.getFileName().toString();
+            int dotIndex = filename.lastIndexOf('.');
+            baseName = dotIndex > 0 ? filename.substring(0, dotIndex) : filename;
+            if (baseName.isEmpty()) {
+                baseName = "alternating_mix";
+            }
+        }
+        return baseName + "_alternating.pdf";
+    }
+
+    public String buildDefaultAlternatingMixName(String inputText) {
+        if (inputText == null) {
+            return buildDefaultAlternatingMixName((Path) null);
+        }
+        String trimmed = inputText.trim();
+        if (trimmed.isEmpty()) {
+            return buildDefaultAlternatingMixName((Path) null);
+        }
+        try {
+            return buildDefaultAlternatingMixName(Paths.get(trimmed));
+        } catch (Exception ex) {
+            return buildDefaultAlternatingMixName((Path) null);
+        }
     }
 
     public String buildDefaultFilteredName(Path inputPath, PdfPageFilter.Mode mode) {
@@ -519,6 +716,23 @@ public final class PdfUtilityFxController {
         Path parent = absolute.getParent();
         Path suggestion = parent != null ? parent.resolve(baseName + "_merged.csv")
                 : Paths.get(baseName + "_merged.csv").toAbsolutePath();
+        return suggestion.toAbsolutePath().toString();
+    }
+
+    public String buildDefaultMergedDuName(Path inputPath) {
+        Path absolute = inputPath.toAbsolutePath();
+        String filename = absolute.getFileName() != null ? absolute.getFileName().toString() : absolute.toString();
+        if (filename == null || filename.isEmpty()) {
+            filename = "merged";
+        }
+        int dotIndex = filename.lastIndexOf('.');
+        String baseName = dotIndex > 0 ? filename.substring(0, dotIndex) : filename;
+        if (baseName.isEmpty()) {
+            baseName = "merged";
+        }
+        Path parent = absolute.getParent();
+        Path suggestion = parent != null ? parent.resolve(baseName + "_merged.DU")
+                : Paths.get(baseName + "_merged.DU").toAbsolutePath();
         return suggestion.toAbsolutePath().toString();
     }
 
@@ -624,6 +838,33 @@ public final class PdfUtilityFxController {
             return baseName + "_keyword_stamp.pdf";
         }
         return baseName + "_keyword_" + sanitizedKeyword + ".pdf";
+    }
+
+    public String buildDefaultBatchMergeDirectoryName(Path inputPath) {
+        if (inputPath == null) {
+            return "merge_blocchi";
+        }
+        Path absolute = inputPath.toAbsolutePath();
+        String folderName = absolute.getFileName() != null ? absolute.getFileName().toString() : "pdf";
+        if (folderName == null || folderName.trim().isEmpty()) {
+            folderName = "pdf";
+        }
+        return folderName + "_merge_blocchi";
+    }
+
+    public String buildDefaultBatchMergeDirectoryName(String inputText) {
+        if (inputText == null) {
+            return "";
+        }
+        String trimmed = inputText.trim();
+        if (trimmed.isEmpty()) {
+            return "";
+        }
+        try {
+            return buildDefaultBatchMergeDirectoryName(Paths.get(trimmed));
+        } catch (Exception ex) {
+            return "";
+        }
     }
 
     public String suggestFilteredOutputName(String inputPathText, PdfPageFilter.Mode mode) {
@@ -751,12 +992,30 @@ public final class PdfUtilityFxController {
         return path;
     }
 
+    private Path requireDuFile(String inputText) {
+        Path path = requireRegularFile(inputText, "Seleziona un file DU da unire.",
+                "Il file specificato non esiste.");
+        if (!isDuFile(path)) {
+            String filename = path.getFileName() != null ? path.getFileName().toString() : path.toString();
+            throw new IllegalArgumentException("Formato non supportato per " + filename + ". Utilizza file DU.");
+        }
+        return path;
+    }
+
     private boolean isCsvOrTxt(Path path) {
         if (path == null || path.getFileName() == null) {
             return false;
         }
         String filename = path.getFileName().toString().toLowerCase(Locale.ROOT);
         return filename.endsWith(".csv") || filename.endsWith(".txt");
+    }
+
+    private boolean isDuFile(Path path) {
+        if (path == null || path.getFileName() == null) {
+            return false;
+        }
+        String filename = path.getFileName().toString().toLowerCase(Locale.ROOT);
+        return filename.endsWith(".du");
     }
 
     private String sanitizeForFolderName(String value) {

@@ -5,8 +5,8 @@ import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfReader;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.kernel.pdf.WriterProperties;
-import com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor;
-import com.itextpdf.kernel.pdf.canvas.parser.listener.SimpleTextExtractionStrategy;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
 
 import olivieri.alex.App;
 import olivieri.alex.quality.AuditLogger;
@@ -70,11 +70,12 @@ public class PdfMarkerSplitter {
             OutputContext currentContext = null;
             int documentsCreated = 0;
 
-            try (PdfDocument sourceDocument = new PdfDocument(new PdfReader(inputFile.toString()))) {
+            try (PdfDocument sourceDocument = new PdfDocument(new PdfReader(inputFile.toString()));
+                 PDDocument pdfBoxDocument = PDDocument.load(inputFile.toFile())) {
+                PDFTextStripper textStripper = new PDFTextStripper();
                 int totalPages = sourceDocument.getNumberOfPages();
                 for (int pageIndex = 1; pageIndex <= totalPages; pageIndex++) {
-                    String pageText = PdfTextExtractor.getTextFromPage(sourceDocument.getPage(pageIndex),
-                            new SimpleTextExtractionStrategy());
+                    String pageText = extractPageText(pdfBoxDocument, textStripper, pageIndex);
                     String normalizedText = caseSensitive ? pageText : pageText.toLowerCase(Locale.ROOT);
                     String normalizedMarker = caseSensitive ? marker : marker.toLowerCase(Locale.ROOT);
                     boolean isMarkerPage = normalizedText.contains(normalizedMarker);
@@ -161,8 +162,11 @@ public class PdfMarkerSplitter {
         if (value == null) {
             return "segment";
         }
-        String sanitized = value.trim().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9_-]+", "_");
-        return sanitized.isEmpty() ? "segment" : sanitized;
+        String sanitized = value.trim().replaceAll("[^a-zA-Z0-9_-]+", "_");
+        if (sanitized.isEmpty()) {
+            return "SEGMENT";
+        }
+        return sanitized.toUpperCase(Locale.ROOT);
     }
 
     private static class OutputContext implements AutoCloseable {
@@ -183,6 +187,17 @@ public class PdfMarkerSplitter {
                 document.close();
                 closed = true;
             }
+        }
+    }
+
+    private String extractPageText(PDDocument pdfBoxDocument, PDFTextStripper stripper, int pageIndex)
+            throws IOException {
+        try {
+            stripper.setStartPage(pageIndex);
+            stripper.setEndPage(pageIndex);
+            return stripper.getText(pdfBoxDocument);
+        } catch (IOException ex) {
+            throw new IOException("Impossibile leggere il testo dalla pagina " + pageIndex + ".", ex);
         }
     }
 }

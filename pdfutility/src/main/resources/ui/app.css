@@ -1,21 +1,21 @@
 .label {
     -fx-wrap-text: true;
     -fx-text-alignment: left;
-    -fx-pref-height: USE_COMPUTED_SIZE;
+    -fx-pref-height: -1;
     -fx-min-height: 0;
-    -fx-max-height: Double.MAX_VALUE;
+    -fx-max-height: Infinity;
 }
 
 .tab-pane {
-    -fx-pref-height: USE_COMPUTED_SIZE;
+    -fx-pref-height: -1;
     -fx-min-height: 0;
-    -fx-max-height: Double.MAX_VALUE;
+    -fx-max-height: Infinity;
 }
 
 .tab-pane .tab-content-area {
-    -fx-pref-height: USE_COMPUTED_SIZE;
+    -fx-pref-height: -1;
     -fx-min-height: 0;
-    -fx-max-height: Double.MAX_VALUE;
+    -fx-max-height: Infinity;
 }
 
 
@@ -24,21 +24,37 @@
 .border-pane>*,
 .stack-pane,
 .anchor-pane {
-    -fx-pref-height: USE_COMPUTED_SIZE;
-    -fx-pref-width: USE_COMPUTED_SIZE;
+    -fx-pref-height: -1;
+    -fx-pref-width: -1;
     -fx-min-height: 0;
     -fx-min-width: 0;
-    -fx-max-height: Double.MAX_VALUE;
-    -fx-max-width: Double.MAX_VALUE;
+    -fx-max-height: Infinity;
+    -fx-max-width: Infinity;
 }
 
 .grid-pane,
 .vbox,
 .hbox {
-    -fx-pref-height: USE_COMPUTED_SIZE;
-    -fx-pref-width: USE_COMPUTED_SIZE;
-    -fx-max-height: Double.MAX_VALUE;
-    -fx-max-width: Double.MAX_VALUE;
+    -fx-pref-height: -1;
+    -fx-pref-width: -1;
+    -fx-max-height: Infinity;
+    -fx-max-width: Infinity;
     -fx-min-height: 0;
     -fx-min-width: 0;
+}
+
+.tab-pane .tab-header-area {
+    -fx-tab-max-width: Infinity;
+    -fx-tab-min-width: 120;
+    -fx-tab-max-height: 40;
+    -fx-padding: 0 2 0 2;
+}
+
+.tab-pane .tab {
+    -fx-alignment: center;
+    -fx-padding: 4 12;
+}
+
+.tab-pane .tab-label {
+    -fx-font-size: 11pt;
 }

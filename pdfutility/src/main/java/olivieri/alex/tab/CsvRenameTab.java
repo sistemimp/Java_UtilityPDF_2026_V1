@@ -9,6 +9,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -25,12 +26,15 @@ public final class CsvRenameTab {
         JButton browseDirButton = new JButton("Cartella PDF");
         JTextField csvField = new JTextField(25);
         JButton browseCsvButton = new JButton("File CSV");
+        JCheckBox directMoveRenameCheck = new JCheckBox(
+                "Rinomina/sposta direttamente il PDF originale (senza ricrearlo)");
         JButton renameButton = new JButton("Rinomina");
 
         browseDirButton.addActionListener(event -> browseForDirectory(parent, directoryField));
         browseCsvButton.addActionListener(event -> browseForCsv(parent, csvField));
         renameButton.addActionListener(
-                event -> controller.startCsvRename(parent, directoryField.getText(), csvField.getText(), renameButton));
+                event -> controller.startCsvRename(parent, directoryField.getText(), csvField.getText(),
+                        directMoveRenameCheck.isSelected(), renameButton));
 
         JPanel formPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -61,6 +65,11 @@ public final class CsvRenameTab {
         gbc.gridx = 2;
         gbc.weightx = 0;
         formPanel.add(browseCsvButton, gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        formPanel.add(directMoveRenameCheck, gbc);
 
         JPanel container = new JPanel(new BorderLayout(10, 10));
         container.add(formPanel, BorderLayout.CENTER);

@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.TextField?>
@@ -22,6 +23,9 @@
       <Label text="File CSV:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
       <TextField fx:id="csvRenameCsvField" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
       <Button fx:id="csvRenameCsvBrowse" text="CSV" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+      <CheckBox fx:id="csvRenameDirectMoveCheck"
+                text="Rinomina/sposta direttamente il PDF originale (senza ricrearlo)"
+                GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="2"/>
     </GridPane>
   </center>
 

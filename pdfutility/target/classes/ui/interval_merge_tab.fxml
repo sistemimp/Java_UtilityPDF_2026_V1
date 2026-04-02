@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+
+<BorderPane xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="olivieri.alex.fx.tab.FxIntervalMergeTabContentController">
+  <center>
+    <GridPane hgap="10" vgap="10">
+      <padding>
+        <Insets bottom="10" left="10" right="10" top="10"/>
+      </padding>
+      <columnConstraints>
+        <ColumnConstraints hgrow="SOMETIMES"/>
+        <ColumnConstraints hgrow="ALWAYS"/>
+        <ColumnConstraints hgrow="SOMETIMES"/>
+      </columnConstraints>
+      <rowConstraints>
+        <RowConstraints vgrow="NEVER"/>
+        <RowConstraints vgrow="NEVER"/>
+        <RowConstraints vgrow="NEVER"/>
+        <RowConstraints vgrow="NEVER"/>
+        <RowConstraints vgrow="NEVER"/>
+        <RowConstraints vgrow="NEVER"/>
+      </rowConstraints>
+
+      <Label text="Cartella PDF:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+      <TextField fx:id="intervalDirectoryField" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+      <Button fx:id="intervalBrowseButton" text="Sfoglia cartella" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+
+      <Label text="Cartella output gruppi:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+      <TextField fx:id="intervalOutputDirectoryField" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+      <Button fx:id="intervalOutputBrowseButton" text="Sfoglia output" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+
+      <Label text="PDF per gruppo:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+      <Spinner fx:id="intervalGroupSizeSpinner" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+      <Label text="Prefisso file output:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+      <TextField fx:id="intervalPrefixField" text="merge" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="3"/>
+
+      <Label text="Rotazione pagine non A4 Portrait:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+      <CheckBox fx:id="intervalRotateClockwise" text="Forza rotazione oraria" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+      <CheckBox fx:id="intervalRotateCounterClockwise" text="Forza rotazione antioraria" GridPane.columnIndex="2" GridPane.rowIndex="4"/>
+
+      <Label text="I PDF vengono ordinati alfabeticamente e uniti in gruppi consecutivi&#10;da N file ciascuno (ultimo gruppo con i file rimanenti)." textAlignment="CENTER" GridPane.columnIndex="0" GridPane.columnSpan="3" GridPane.halignment="CENTER" GridPane.rowIndex="5"/>
+    </GridPane>
+  </center>
+
+  <bottom>
+    <HBox alignment="CENTER_RIGHT" spacing="10">
+      <padding>
+        <Insets bottom="10" left="10" right="12" top="8"/>
+      </padding>
+      <ProgressIndicator fx:id="intervalProgress" maxHeight="24" maxWidth="24" visible="false"/>
+      <Button fx:id="intervalMergeButton" text="Unisci a blocchi"/>
+    </HBox>
+  </bottom>
+</BorderPane>

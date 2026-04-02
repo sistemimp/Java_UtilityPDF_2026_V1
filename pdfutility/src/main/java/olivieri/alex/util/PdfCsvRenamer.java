@@ -64,7 +64,22 @@ public class PdfCsvRenamer {
      * @throws IllegalArgumentException if inputs are invalid
      */
     public Result renameFromCsv(Path directory, Path csvFile) throws IOException {
-        String details = "directory=" + directory + ",csv=" + csvFile;
+        return renameFromCsv(directory, csvFile, false);
+    }
+
+    /**
+     * Applies the CSV mapping to rename PDF files in the target directory.
+     *
+     * @param directory        directory that contains the PDFs
+     * @param csvFile          CSV file with two columns: original name, new name
+     * @param directMoveRename when true, performs only move/rename operations without
+     *                         recreating PDF files
+     * @return renaming result
+     * @throws IOException              if IO operations fail
+     * @throws IllegalArgumentException if inputs are invalid
+     */
+    public Result renameFromCsv(Path directory, Path csvFile, boolean directMoveRename) throws IOException {
+        String details = "directory=" + directory + ",csv=" + csvFile + ",directMoveRename=" + directMoveRename;
         try {
             if (directory == null || !Files.isDirectory(directory)) {
                 throw new IllegalArgumentException("Cartella PDF non valida.");
@@ -86,50 +101,8 @@ public class PdfCsvRenamer {
             }
 
             List<String> warnings = new ArrayList<>();
-            int renamed = 0;
-
-            for (Map.Entry<String, List<String>> entry : targetsToSources.entrySet()) {
-                String targetName = entry.getKey();
-                Path targetPath = directory.resolve(targetName);
-
-                List<Path> pendingSources = new ArrayList<>();
-                for (String sourceName : entry.getValue()) {
-                    Path sourcePath = directory.resolve(sourceName);
-                    if (Files.isRegularFile(sourcePath)) {
-                        pendingSources.add(sourcePath);
-                    } else {
-                        warnings.add("File non trovato: " + sourceName);
-                    }
-                }
-
-                boolean baseExists = Files.isRegularFile(targetPath);
-                if (!baseExists) {
-                    Path baseSource = findAndRemoveFirstExisting(pendingSources);
-                    if (baseSource != null && !baseSource.equals(targetPath)) {
-                        Files.move(baseSource, targetPath);
-                        baseExists = true;
-                    } else if (baseSource != null) {
-                        baseExists = true;
-                    }
-                }
-
-                if (!baseExists) {
-                    continue;
-                }
-
-                for (Path additional : pendingSources) {
-                    if (!Files.isRegularFile(additional) || targetPath.equals(additional)) {
-                        continue;
-                    }
-                    appendPdf(additional, targetPath);
-                    if (!targetPath.equals(additional)) {
-                        Files.deleteIfExists(additional);
-                    }
-                }
-
-                addAnchorageStamp(targetPath);
-                renamed++;
-            }
+            int renamed = directMoveRename ? renameByMoveOnly(directory, targetsToSources, warnings)
+                    : renameByRebuild(directory, targetsToSources, warnings);
 
             Result result = new Result(renamed, warnings);
             AuditLogger.logSuccess("SERVICE_PDF_CSV_RENAME", details, directory);
@@ -138,6 +111,100 @@ public class PdfCsvRenamer {
             AuditLogger.logFailure("SERVICE_PDF_CSV_RENAME", details, directory, ex);
             throw ex;
         }
+    }
+
+    private int renameByRebuild(Path directory, Map<String, List<String>> targetsToSources, List<String> warnings)
+            throws IOException {
+        int renamed = 0;
+        for (Map.Entry<String, List<String>> entry : targetsToSources.entrySet()) {
+            String targetName = entry.getKey();
+            Path targetPath = directory.resolve(targetName);
+            createParentDirectories(targetPath);
+
+            List<Path> pendingSources = new ArrayList<>();
+            for (String sourceName : entry.getValue()) {
+                Path sourcePath = directory.resolve(sourceName);
+                if (Files.isRegularFile(sourcePath)) {
+                    pendingSources.add(sourcePath);
+                } else {
+                    warnings.add("File non trovato: " + sourceName);
+                }
+            }
+
+            boolean baseExists = Files.isRegularFile(targetPath);
+            if (!baseExists) {
+                Path baseSource = findAndRemoveFirstExisting(pendingSources);
+                if (baseSource != null && !baseSource.equals(targetPath)) {
+                    Files.move(baseSource, targetPath);
+                    baseExists = true;
+                } else if (baseSource != null) {
+                    baseExists = true;
+                }
+            }
+
+            if (!baseExists) {
+                continue;
+            }
+
+            for (Path additional : pendingSources) {
+                if (!Files.isRegularFile(additional) || targetPath.equals(additional)) {
+                    continue;
+                }
+                appendPdf(additional, targetPath);
+                if (!targetPath.equals(additional)) {
+                    Files.deleteIfExists(additional);
+                }
+            }
+
+            addAnchorageStamp(targetPath);
+            renamed++;
+        }
+        return renamed;
+    }
+
+    private int renameByMoveOnly(Path directory, Map<String, List<String>> targetsToSources, List<String> warnings)
+            throws IOException {
+        int renamed = 0;
+        for (Map.Entry<String, List<String>> entry : targetsToSources.entrySet()) {
+            String targetName = entry.getKey();
+            Path targetPath = directory.resolve(targetName);
+            createParentDirectories(targetPath);
+
+            List<Path> pendingSources = new ArrayList<>();
+            for (String sourceName : entry.getValue()) {
+                Path sourcePath = directory.resolve(sourceName);
+                if (Files.isRegularFile(sourcePath)) {
+                    pendingSources.add(sourcePath);
+                } else {
+                    warnings.add("File non trovato: " + sourceName);
+                }
+            }
+
+            if (pendingSources.isEmpty()) {
+                continue;
+            }
+
+            Path samePathSource = removeExactSource(pendingSources, targetPath);
+            if (samePathSource != null) {
+                renamed++;
+            } else if (Files.exists(targetPath)) {
+                warnings.add("Destinazione già esistente (rinomina diretta non eseguita): " + targetName);
+                continue;
+            } else {
+                Path source = findAndRemoveFirstExisting(pendingSources);
+                if (source == null) {
+                    continue;
+                }
+                Files.move(source, targetPath);
+                renamed++;
+            }
+
+            if (!pendingSources.isEmpty()) {
+                warnings.add("Più sorgenti per lo stesso nome in modalità rinomina diretta: " + targetName
+                        + " (ignorati " + pendingSources.size() + " file).");
+            }
+        }
+        return renamed;
     }
 
     private List<CsvEntry> readCsv(Path csvFile) throws IOException {
@@ -217,10 +284,28 @@ public class PdfCsvRenamer {
         return Files.createTempFile(prefix, suffix);
     }
 
+    private void createParentDirectories(Path filePath) throws IOException {
+        Path parent = filePath.getParent();
+        if (parent != null) {
+            Files.createDirectories(parent);
+        }
+    }
+
     private Path findAndRemoveFirstExisting(List<Path> sources) {
         for (int i = 0; i < sources.size(); i++) {
             Path candidate = sources.get(i);
             if (Files.isRegularFile(candidate)) {
+                sources.remove(i);
+                return candidate;
+            }
+        }
+        return null;
+    }
+
+    private Path removeExactSource(List<Path> sources, Path targetPath) {
+        for (int i = 0; i < sources.size(); i++) {
+            Path candidate = sources.get(i);
+            if (targetPath.equals(candidate)) {
                 sources.remove(i);
                 return candidate;
             }

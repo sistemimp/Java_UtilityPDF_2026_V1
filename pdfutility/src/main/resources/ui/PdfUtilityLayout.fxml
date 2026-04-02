@@ -27,7 +27,7 @@
       <padding>
         <Insets bottom="12" left="12" right="12" top="12"/>
       </padding>
-      <Label style="-fx-font-size: 18px; -fx-text-fill: white;" text="Utility PDF - 2026 - V1.0"/>
+      <Label fx:id="appTitleLabel" style="-fx-font-size: 18px; -fx-text-fill: white;" text="Utility PDF"/>
       <Region fx:id="toolbarSpacer" HBox.hgrow="ALWAYS"/>
       <Button fx:id="openAuditLogButton" style="-fx-background-color: white; -fx-text-fill: rgb(31,79,156);" text="Apri log audit"/>
     </HBox>
@@ -76,6 +76,13 @@
                                 </bottom>
                               </BorderPane>
                             </Tab>
+                            <Tab fx:id="intervalMergeTab" text="Merge a blocchi">
+                              <BorderPane>
+                                <center>
+                                  <Label text="Caricamento modulo merge a blocchi..." wrapText="true"/>
+                                </center>
+                              </BorderPane>
+                            </Tab>
                             <Tab fx:id="repeatTab" text="Ripeti PDF">
                               <BorderPane>
                                 <center>
@@ -119,6 +126,13 @@
                                     <Button fx:id="repeatButton" text="Ripeti"/>
                                   </HBox>
                                 </bottom>
+                              </BorderPane>
+                            </Tab>
+                            <Tab fx:id="alternatingMixTab" text="Miscelazione alternata">
+                              <BorderPane>
+                                <center>
+                                  <Label text="Caricamento modulo miscelazione alternata..." wrapText="true"/>
+                                </center>
                               </BorderPane>
                             </Tab>
                             <Tab fx:id="pairMergeTab" text="Unisci per nome">
@@ -374,6 +388,13 @@
                                 </bottom>
                               </BorderPane>
                             </Tab>
+                            <Tab fx:id="risoGd9630Tab" text="Riso ComColor GD9630">
+                              <BorderPane>
+                                <center>
+                                  <Label text="Caricamento modulo Riso ComColor GD9630..." wrapText="true"/>
+                                </center>
+                              </BorderPane>
+                            </Tab>
                           </tabs>
                         </TabPane>
                       </center>
@@ -577,8 +598,22 @@
                       </bottom>
                     </BorderPane>
                   </Tab>
+                  <Tab fx:id="duMergeTab" text="Unisci DU">
+                    <BorderPane>
+                      <center>
+                        <Label text="Caricamento modulo Unisci DU..." wrapText="true"/>
+                      </center>
+                    </BorderPane>
+                  </Tab>
                 </tabs>
               </TabPane>
+            </center>
+          </BorderPane>
+        </Tab>
+        <Tab fx:id="qrMainTab" text="Rinomina QR">
+          <BorderPane>
+            <center>
+              <Label text="Caricamento modulo rinomina QR..." wrapText="true"/>
             </center>
           </BorderPane>
         </Tab>

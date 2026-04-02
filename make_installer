@@ -1,1 +1,1 @@
-cd pdfutility && mvn -P installer clean package
+cd pdfutility && cmd /c "if exist target\\installer (attrib -R target\\installer\\* /S /D & del /F /Q target\\installer\\*.exe target\\installer\\*.msi 2>nul)" && mvn clean package -Pinstaller jpackage:jpackage

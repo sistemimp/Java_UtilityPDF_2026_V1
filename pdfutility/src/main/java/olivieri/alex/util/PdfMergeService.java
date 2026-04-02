@@ -15,7 +15,9 @@ import olivieri.alex.quality.AuditLogger;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
@@ -42,6 +44,43 @@ public class PdfMergeService {
         }
     }
 
+    public static final class BatchMergeResult {
+        private final Path outputDirectory;
+        private final int sourcePdfCount;
+        private final int mergedGroupCount;
+        private final int groupSize;
+        private final List<Path> outputFiles;
+
+        public BatchMergeResult(Path outputDirectory, int sourcePdfCount, int mergedGroupCount, int groupSize,
+                List<Path> outputFiles) {
+            this.outputDirectory = outputDirectory;
+            this.sourcePdfCount = sourcePdfCount;
+            this.mergedGroupCount = mergedGroupCount;
+            this.groupSize = groupSize;
+            this.outputFiles = outputFiles == null ? List.of() : Collections.unmodifiableList(new ArrayList<>(outputFiles));
+        }
+
+        public Path getOutputDirectory() {
+            return outputDirectory;
+        }
+
+        public int getSourcePdfCount() {
+            return sourcePdfCount;
+        }
+
+        public int getMergedGroupCount() {
+            return mergedGroupCount;
+        }
+
+        public int getGroupSize() {
+            return groupSize;
+        }
+
+        public List<Path> getOutputFiles() {
+            return outputFiles;
+        }
+    }
+
     private static final float A4_WIDTH = PageSize.A4.getWidth();
     private static final float A4_HEIGHT = PageSize.A4.getHeight();
     private static final float A4_TOLERANCE = 2.0f;
@@ -54,7 +93,6 @@ public class PdfMergeService {
         RotationMode effectiveRotation = rotationMode == null ? RotationMode.NONE : rotationMode;
         String details = "sourceDir=" + sourceDirectory + ",output=" + outputFile + ",rotation=" + effectiveRotation;
         try {
-            rotationMode = effectiveRotation;
             if (sourceDirectory == null || !Files.isDirectory(sourceDirectory)) {
                 throw new IllegalArgumentException("Percorso sorgente non valido o non e una cartella.");
             }
@@ -64,24 +102,60 @@ public class PdfMergeService {
                 throw new IllegalArgumentException("Nessun file PDF trovato nella cartella selezionata.");
             }
 
-            Path parent = outputFile.getParent();
-            if (parent != null) {
-                Files.createDirectories(parent);
-            }
-
-            try (PdfWriter writer = new PdfWriter(outputFile.toString(), App.writerProperties);
-                    PdfDocument targetDocument = new PdfDocument(writer)) {
-                for (Path pdfFile : pdfFiles) {
-                    try (PdfDocument sourceDocument = new PdfDocument(new PdfReader(pdfFile.toString()))) {
-                        copyDocumentPages(sourceDocument, targetDocument, rotationMode);
-                    }
-                }
-            }
+            mergeFiles(pdfFiles, outputFile, effectiveRotation);
 
             AuditLogger.logSuccess("SERVICE_PDF_MERGE", details, outputFile);
             return outputFile;
         } catch (IOException | RuntimeException ex) {
             AuditLogger.logFailure("SERVICE_PDF_MERGE", details, outputFile, ex);
+            throw ex;
+        }
+    }
+
+    public BatchMergeResult mergeDirectoryInBatches(Path sourceDirectory, Path outputDirectory, int groupSize,
+            String outputPrefix, RotationMode rotationMode) throws IOException {
+        RotationMode effectiveRotation = rotationMode == null ? RotationMode.NONE : rotationMode;
+        String details = "sourceDir=" + sourceDirectory + ",outputDir=" + outputDirectory + ",groupSize=" + groupSize
+                + ",prefix=" + outputPrefix + ",rotation=" + effectiveRotation;
+        try {
+            if (sourceDirectory == null || !Files.isDirectory(sourceDirectory)) {
+                throw new IllegalArgumentException("Percorso sorgente non valido o non e una cartella.");
+            }
+            if (outputDirectory == null) {
+                throw new IllegalArgumentException("Percorso cartella di output non valido.");
+            }
+            if (groupSize < 1) {
+                throw new IllegalArgumentException("Il numero di PDF per gruppo deve essere almeno 1.");
+            }
+
+            List<Path> pdfFiles = listPdfFiles(sourceDirectory);
+            if (pdfFiles.isEmpty()) {
+                throw new IllegalArgumentException("Nessun file PDF trovato nella cartella selezionata.");
+            }
+
+            Files.createDirectories(outputDirectory);
+            String sanitizedPrefix = sanitizeOutputPrefix(outputPrefix);
+            int totalGroups = (pdfFiles.size() + groupSize - 1) / groupSize;
+            List<Path> createdFiles = new ArrayList<>(totalGroups);
+            int groupDigits = Integer.toString(totalGroups).length();
+
+            for (int start = 0, groupIndex = 1; start < pdfFiles.size(); start += groupSize, groupIndex++) {
+                int endExclusive = Math.min(start + groupSize, pdfFiles.size());
+                List<Path> groupFiles = pdfFiles.subList(start, endExclusive);
+                Path firstPdf = groupFiles.get(0);
+                Path lastPdf = groupFiles.get(groupFiles.size() - 1);
+                String outputName = buildBatchOutputName(sanitizedPrefix, groupIndex, groupDigits, firstPdf, lastPdf);
+                Path groupOutput = outputDirectory.resolve(outputName);
+                mergeFiles(groupFiles, groupOutput, effectiveRotation);
+                createdFiles.add(groupOutput);
+            }
+
+            BatchMergeResult result = new BatchMergeResult(outputDirectory, pdfFiles.size(), createdFiles.size(),
+                    groupSize, createdFiles);
+            AuditLogger.logSuccess("SERVICE_PDF_MERGE_BATCH", details, outputDirectory);
+            return result;
+        } catch (IOException | RuntimeException ex) {
+            AuditLogger.logFailure("SERVICE_PDF_MERGE_BATCH", details, outputDirectory, ex);
             throw ex;
         }
     }
@@ -143,6 +217,54 @@ public class PdfMergeService {
 
         PdfFormXObject pageContent = sourcePage.copyAsFormXObject(targetDocument);
         canvas.addXObjectAt(pageContent, 0, 0);
+    }
+
+    private void mergeFiles(List<Path> pdfFiles, Path outputFile, RotationMode rotationMode) throws IOException {
+        if (pdfFiles == null || pdfFiles.isEmpty()) {
+            throw new IllegalArgumentException("Nessun file PDF da unire.");
+        }
+
+        Path parent = outputFile.getParent();
+        if (parent != null) {
+            Files.createDirectories(parent);
+        }
+
+        try (PdfWriter writer = new PdfWriter(outputFile.toString(), App.writerProperties);
+                PdfDocument targetDocument = new PdfDocument(writer)) {
+            for (Path pdfFile : pdfFiles) {
+                try (PdfDocument sourceDocument = new PdfDocument(new PdfReader(pdfFile.toString()))) {
+                    copyDocumentPages(sourceDocument, targetDocument, rotationMode);
+                }
+            }
+        }
+    }
+
+    private static String buildBatchOutputName(String prefix, int groupIndex, int groupDigits, Path firstFile,
+            Path lastFile) {
+        String groupLabel = String.format(Locale.ROOT, "%0" + Math.max(groupDigits, 1) + "d", groupIndex);
+        String firstName = stripPdfExtension(firstFile.getFileName().toString());
+        String lastName = stripPdfExtension(lastFile.getFileName().toString());
+        return prefix + "_" + groupLabel + "_" + firstName + "-" + lastName + ".pdf";
+    }
+
+    private static String stripPdfExtension(String filename) {
+        if (filename == null || filename.isEmpty()) {
+            return "pdf";
+        }
+        String lower = filename.toLowerCase(Locale.ROOT);
+        if (lower.endsWith(".pdf")) {
+            return filename.substring(0, filename.length() - 4);
+        }
+        return filename;
+    }
+
+    private static String sanitizeOutputPrefix(String outputPrefix) {
+        String trimmed = outputPrefix == null ? "" : outputPrefix.trim();
+        if (trimmed.isEmpty()) {
+            return "merge";
+        }
+        String sanitized = trimmed.replaceAll("[\\\\/:*?\"<>|]+", "_");
+        return sanitized.isEmpty() ? "merge" : sanitized;
     }
 
     private static boolean needsDimensionSwap(int rotation) {

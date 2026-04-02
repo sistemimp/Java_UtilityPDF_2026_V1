@@ -16,6 +16,7 @@ import com.itextpdf.kernel.pdf.WriterProperties;
 import olivieri.alex.quality.AuditLogger;
 import olivieri.alex.util.CsvToExcelConverter;
 import olivieri.alex.util.CsvTxtMerger;
+import olivieri.alex.util.PdfAlternatingMergeService;
 import olivieri.alex.util.PdfBlankPageInserter;
 import olivieri.alex.util.PdfConditionalBlankPageInserter;
 import olivieri.alex.util.PdfCsvRenamer;
@@ -26,9 +27,11 @@ import olivieri.alex.util.PdfMergeService;
 import olivieri.alex.util.PdfOptimizer;
 import olivieri.alex.util.PdfPageFilter;
 import olivieri.alex.util.PdfPairMerger;
+import olivieri.alex.util.PdfQrRenamer;
 import olivieri.alex.util.PdfRepeater;
 import olivieri.alex.util.PdfStringPageRemover;
 import olivieri.alex.util.PdfToWordConverter;
+import olivieri.alex.util.RisoComcolorGd9630Optimizer;
 import olivieri.alex.util.RisoGl9730Optimizer;
 
 import java.awt.Desktop;
@@ -44,12 +47,15 @@ public class App {
     private final PdfMergeService mergeService = new PdfMergeService();
     private final PdfOptimizer optimizer = new PdfOptimizer();
     private final RisoGl9730Optimizer risoOptimizer = new RisoGl9730Optimizer();
+    private final RisoComcolorGd9630Optimizer risoComcolorGd9630Optimizer = new RisoComcolorGd9630Optimizer();
     private final PdfBlankPageInserter blankPageInserter = new PdfBlankPageInserter();
     private final PdfConditionalBlankPageInserter conditionalBlankPageInserter = new PdfConditionalBlankPageInserter();
     private final PdfRepeater repeater = new PdfRepeater();
     private final PdfPageFilter pageFilter = new PdfPageFilter();
     private final PdfPairMerger pairMerger = new PdfPairMerger();
+    private final PdfAlternatingMergeService alternatingMergeService = new PdfAlternatingMergeService();
     private final PdfCsvRenamer csvRenamer = new PdfCsvRenamer();
+    private final PdfQrRenamer qrRenamer = new PdfQrRenamer();
     private final PdfFolderStamper folderStamper = new PdfFolderStamper();
     private final PdfKeywordStamper keywordStamper = new PdfKeywordStamper();
     private final PdfMarkerSplitter markerSplitter = new PdfMarkerSplitter();
@@ -336,6 +342,84 @@ public class App {
         worker.execute();
     }
 
+    public void startAlternatingMix(JFrame parent, String firstInputText, String secondInputText, int firstChunkSize,
+            int secondChunkSize, String outputText, JButton mixButton) {
+        String trimmedFirst = firstInputText == null ? "" : firstInputText.trim();
+        String trimmedSecond = secondInputText == null ? "" : secondInputText.trim();
+        if (trimmedFirst.isEmpty() || trimmedSecond.isEmpty()) {
+            JOptionPane.showMessageDialog(parent, "Seleziona entrambi i file PDF.", "Attenzione",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        if (firstChunkSize < 1 || secondChunkSize < 1) {
+            JOptionPane.showMessageDialog(parent, "Il numero di pagine per blocco deve essere almeno 1.", "Attenzione",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        Path firstPath;
+        Path secondPath;
+        try {
+            firstPath = Paths.get(trimmedFirst);
+            secondPath = Paths.get(trimmedSecond);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(parent, "Percorso non valido.", "Errore", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (!Files.isRegularFile(firstPath)) {
+            JOptionPane.showMessageDialog(parent, "Il primo PDF non esiste.", "Errore", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (!Files.isRegularFile(secondPath)) {
+            JOptionPane.showMessageDialog(parent, "Il secondo PDF non esiste.", "Errore", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        Path normalizedFirst = firstPath.toAbsolutePath().normalize();
+        Path normalizedSecond = secondPath.toAbsolutePath().normalize();
+        if (normalizedFirst.equals(normalizedSecond)) {
+            JOptionPane.showMessageDialog(parent, "Seleziona due file diversi.", "Attenzione",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        Path outputPath = resolvePdfOutput(firstPath.toAbsolutePath().getParent(), outputText,
+                buildDefaultAlternatingMixName(firstPath));
+
+        mixButton.setEnabled(false);
+
+        Path mixOutput = outputPath;
+        String mixDetails = "first=" + normalizedFirst + ",second=" + normalizedSecond + ",firstChunk="
+                + firstChunkSize + ",secondChunk=" + secondChunkSize;
+
+        SwingWorker<Path, Void> worker = new SwingWorker<>() {
+            @Override
+            protected Path doInBackground() throws Exception {
+                return alternatingMergeService.mergeAlternating(firstPath, secondPath, mixOutput, firstChunkSize,
+                        secondChunkSize);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    Path result = get();
+                    JOptionPane.showMessageDialog(parent, "Miscelazione completata!\nFile creato: " + result.toString(),
+                            "Successo", JOptionPane.INFORMATION_MESSAGE);
+                    auditSuccess("PDF_ALTERNATING_MIX", mixDetails, result);
+                } catch (Exception ex) {
+                    showErrorWithAudit(parent, "PDF_ALTERNATING_MIX", mixDetails, mixOutput, ex,
+                            "Errore durante la miscelazione: ");
+                } finally {
+                    mixButton.setEnabled(true);
+                }
+            }
+        };
+
+        worker.execute();
+    }
+
     public void startRemovePages(JFrame parent, String inputText, PdfPageFilter.Mode mode, String outputText,
             JButton processButton) {
         String trimmedInput = inputText == null ? "" : inputText.trim();
@@ -460,7 +544,8 @@ public class App {
         worker.execute();
     }
 
-    public void startCsvRename(JFrame parent, String directoryText, String csvText, JButton renameButton) {
+    public void startCsvRename(JFrame parent, String directoryText, String csvText, boolean directMoveRename,
+            JButton renameButton) {
         String trimmedDir = directoryText == null ? "" : directoryText.trim();
         String trimmedCsv = csvText == null ? "" : csvText.trim();
         if (trimmedDir.isEmpty() || trimmedCsv.isEmpty()) {
@@ -494,12 +579,13 @@ public class App {
 
         Path renameDirectory = directory.toAbsolutePath();
         Path renameCsvPath = csvFile.toAbsolutePath();
-        String renameDetails = "directory=" + renameDirectory + ",csv=" + renameCsvPath;
+        String renameDetails = "directory=" + renameDirectory + ",csv=" + renameCsvPath + ",directMoveRename="
+                + directMoveRename;
 
         SwingWorker<PdfCsvRenamer.Result, Void> worker = new SwingWorker<>() {
             @Override
             protected PdfCsvRenamer.Result doInBackground() throws Exception {
-                return csvRenamer.renameFromCsv(directory, csvFile);
+                return csvRenamer.renameFromCsv(directory, csvFile, directMoveRename);
             }
 
             @Override
@@ -522,6 +608,76 @@ public class App {
                             "Errore durante la rinomina: ");
                 } finally {
                     renameButton.setEnabled(true);
+                }
+            }
+        };
+
+        worker.execute();
+    }
+
+    public void startQrRename(JFrame parent, String inputDirText, String outputDirText, JButton processButton) {
+        String trimmedInput = inputDirText == null ? "" : inputDirText.trim();
+        String trimmedOutput = outputDirText == null ? "" : outputDirText.trim();
+        if (trimmedInput.isEmpty() || trimmedOutput.isEmpty()) {
+            JOptionPane.showMessageDialog(parent, "Specificare cartella di input e cartella di output.", "Attenzione",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        Path inputDirectory;
+        Path outputDirectory;
+        try {
+            inputDirectory = Paths.get(trimmedInput);
+            outputDirectory = Paths.get(trimmedOutput);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(parent, "Percorsi non validi.", "Errore", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (!Files.isDirectory(inputDirectory)) {
+            JOptionPane.showMessageDialog(parent, "La cartella di input non esiste.", "Errore",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (Files.exists(outputDirectory) && !Files.isDirectory(outputDirectory)) {
+            JOptionPane.showMessageDialog(parent, "La cartella di output non è valida.", "Errore",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        processButton.setEnabled(false);
+
+        Path normalizedInput = inputDirectory.toAbsolutePath();
+        Path normalizedOutput = outputDirectory.toAbsolutePath();
+        String details = "input=" + normalizedInput + ",output=" + normalizedOutput;
+
+        SwingWorker<PdfQrRenamer.Result, Void> worker = new SwingWorker<>() {
+            @Override
+            protected PdfQrRenamer.Result doInBackground() throws Exception {
+                return qrRenamer.renameByQr(normalizedInput, normalizedOutput);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    PdfQrRenamer.Result result = get();
+                    StringBuilder message = new StringBuilder().append("Operazione completata!")
+                            .append("\nPDF scansionati: ").append(result.getScannedCount())
+                            .append("\nPDF copiati: ").append(result.getCopiedCount());
+                    if (result.hasWarnings()) {
+                        message.append("\nAvvisi:");
+                        for (String warning : result.getWarnings()) {
+                            message.append("\n- ").append(warning);
+                        }
+                    }
+                    JOptionPane.showMessageDialog(parent, message.toString(), "Successo",
+                            JOptionPane.INFORMATION_MESSAGE);
+                    auditSuccess("PDF_QR_RENAME", details, normalizedOutput);
+                } catch (Exception ex) {
+                    showErrorWithAudit(parent, "PDF_QR_RENAME", details, normalizedOutput, ex,
+                            "Errore durante la rinomina: ");
+                } finally {
+                    processButton.setEnabled(true);
                 }
             }
         };
@@ -1113,6 +1269,63 @@ public class App {
         worker.execute();
     }
 
+    public void startRisoComcolorGd9630Optimization(JFrame parent, String inputText, String outputText, String recordIdText,
+            JButton optimizeButton) {
+        String trimmedInput = inputText == null ? "" : inputText.trim();
+        if (trimmedInput.isEmpty()) {
+            JOptionPane.showMessageDialog(parent, "Seleziona un PDF da convertire.", "Attenzione",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        Path inputPath;
+        try {
+            inputPath = Paths.get(trimmedInput);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(parent, "Percorso del PDF non valido.", "Errore", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (!Files.isRegularFile(inputPath)) {
+            JOptionPane.showMessageDialog(parent, "Il file selezionato non esiste.", "Errore",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String sanitizedRecordId = recordIdText == null ? "" : recordIdText.trim();
+        Path outputPath = resolvePdfOutput(inputPath.toAbsolutePath().getParent(), outputText,
+                buildDefaultRisoComcolorGd9630OptimizedName(inputPath));
+        Path inputAbsolute = inputPath.toAbsolutePath();
+        Path outputAbsolute = outputPath;
+        String details = "input=" + inputAbsolute + ",output=" + outputAbsolute + ",recordId=" + sanitizedRecordId;
+
+        optimizeButton.setEnabled(false);
+
+        SwingWorker<Path, Void> worker = new SwingWorker<>() {
+            @Override
+            protected Path doInBackground() throws Exception {
+                return risoComcolorGd9630Optimizer.optimize(inputPath, outputPath, sanitizedRecordId);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    Path result = get();
+                    JOptionPane.showMessageDialog(parent, "Conversione completata!\nFile creato: " + result.toString(),
+                            "Successo", JOptionPane.INFORMATION_MESSAGE);
+                    auditSuccess("PDF_RISO_GD9630_OPTIMIZATION", details, result);
+                } catch (Exception ex) {
+                    showErrorWithAudit(parent, "PDF_RISO_GD9630_OPTIMIZATION", details, outputAbsolute, ex,
+                            "Errore durante l'ottimizzazione Riso ComColor GD9630: ");
+                } finally {
+                    optimizeButton.setEnabled(true);
+                }
+            }
+        };
+
+        worker.execute();
+    }
+
     public void startPdfToWordConversion(JFrame parent, String inputText, String outputText, JButton convertButton) {
         String trimmedInput = inputText == null ? "" : inputText.trim();
         if (trimmedInput.isEmpty()) {
@@ -1321,6 +1534,28 @@ public class App {
         }
     }
 
+    public String buildDefaultRisoComcolorGd9630OptimizedName(Path inputPath) {
+        String filename = inputPath.getFileName().toString();
+        int dotIndex = filename.lastIndexOf('.');
+        String baseName = dotIndex > 0 ? filename.substring(0, dotIndex) : filename;
+        return baseName + "_riso_comcolor_gd9630.pdf";
+    }
+
+    public String buildDefaultRisoComcolorGd9630OptimizedName(String inputText) {
+        if (inputText == null) {
+            return "";
+        }
+        String trimmed = inputText.trim();
+        if (trimmed.isEmpty()) {
+            return "";
+        }
+        try {
+            return buildDefaultRisoComcolorGd9630OptimizedName(Paths.get(trimmed));
+        } catch (Exception ex) {
+            return "";
+        }
+    }
+
     public String buildDefaultMergedTextName(Path inputPath) {
         Path absolute = inputPath.toAbsolutePath();
         String filename = absolute.getFileName() != null ? absolute.getFileName().toString() : absolute.toString();
@@ -1441,6 +1676,34 @@ public class App {
         int dotIndex = filename.lastIndexOf('.');
         String baseName = dotIndex > 0 ? filename.substring(0, dotIndex) : filename;
         return baseName + "_x" + Math.max(repetitions, 1) + ".pdf";
+    }
+
+    public String buildDefaultAlternatingMixName(Path inputPath) {
+        String baseName = "alternating_mix";
+        if (inputPath != null && inputPath.getFileName() != null) {
+            String filename = inputPath.getFileName().toString();
+            int dotIndex = filename.lastIndexOf('.');
+            baseName = dotIndex > 0 ? filename.substring(0, dotIndex) : filename;
+            if (baseName.isEmpty()) {
+                baseName = "alternating_mix";
+            }
+        }
+        return baseName + "_alternating.pdf";
+    }
+
+    public String buildDefaultAlternatingMixName(String inputText) {
+        if (inputText == null) {
+            return buildDefaultAlternatingMixName((Path) null);
+        }
+        String trimmed = inputText.trim();
+        if (trimmed.isEmpty()) {
+            return buildDefaultAlternatingMixName((Path) null);
+        }
+        try {
+            return buildDefaultAlternatingMixName(Paths.get(trimmed));
+        } catch (Exception ex) {
+            return buildDefaultAlternatingMixName((Path) null);
+        }
     }
 
     public String buildDefaultFilteredName(Path inputPath, PdfPageFilter.Mode mode) {

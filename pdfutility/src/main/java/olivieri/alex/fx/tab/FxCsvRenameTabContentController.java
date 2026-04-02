@@ -3,6 +3,7 @@ package olivieri.alex.fx.tab;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
 import javafx.stage.DirectoryChooser;
@@ -27,6 +28,8 @@ public final class FxCsvRenameTabContentController {
     private Button csvRenameButton;
     @FXML
     private ProgressIndicator csvRenameProgress;
+    @FXML
+    private CheckBox csvRenameDirectMoveCheck;
 
     private PdfUtilityFxController controller;
     private Window owner;
@@ -58,7 +61,8 @@ public final class FxCsvRenameTabContentController {
             Task<PdfCsvRenamer.Result> task = new Task<>() {
                 @Override
                 protected PdfCsvRenamer.Result call() throws Exception {
-                    return controller.renameFromCsv(csvRenameDirectoryField.getText(), csvRenameCsvField.getText());
+                    return controller.renameFromCsv(csvRenameDirectoryField.getText(), csvRenameCsvField.getText(),
+                            csvRenameDirectMoveCheck.isSelected());
                 }
             };
             FxTabControllerSupport.bindUiState(csvRenameButton, csvRenameProgress, task);

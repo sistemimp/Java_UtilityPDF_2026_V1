@@ -39,12 +39,15 @@ public final class PdfUtilityGui {
         tabbedPane.addTab("Unione PDF", MergeTab.create(controller, frame));
         tabbedPane.addTab("Ottimizzazione PDF", OptimizeTab.create(controller, frame));
         tabbedPane.addTab("Riso GL9730", RisoOptimizeTab.create(controller, frame));
+        tabbedPane.addTab("Riso ComColor GD9630", RisoComcolorGd9630OptimizeTab.create(controller, frame));
         tabbedPane.addTab("Pagine Bianche", BlankPagesTab.create(controller, frame));
         tabbedPane.addTab("Pagine Bianche dopo testo", ConditionalBlankTab.create(controller, frame));
         tabbedPane.addTab("Ripeti PDF", RepeatTab.create(controller, frame));
+        tabbedPane.addTab("Miscelazione alternata", AlternatingMixTab.create(controller, frame));
         tabbedPane.addTab("Filtro pagine", PageFilterTab.create(controller, frame));
         tabbedPane.addTab("Unisci per nome", PairMergeTab.create(controller, frame));
         tabbedPane.addTab("Rinomina da CSV", CsvRenameTab.create(controller, frame));
+        tabbedPane.addTab("Rinomina QR", QrRenameTab.create(controller, frame));
         tabbedPane.addTab("CSV in Excel", CsvToExcelTab.create(controller, frame));
         tabbedPane.addTab("Unisci CSV/TXT", CsvTxtMergeTab.create(controller, frame));
         tabbedPane.addTab("Timbro cartella", FolderStampTab.create(controller, frame));
