@@ -28,6 +28,7 @@
         <RowConstraints vgrow="NEVER"/>
         <RowConstraints vgrow="NEVER"/>
         <RowConstraints vgrow="NEVER"/>
+        <RowConstraints vgrow="NEVER"/>
       </rowConstraints>
       <Label text="Cartella PDF:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
       <TextField fx:id="mergeDirectoryField" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="0"/>
@@ -37,7 +38,9 @@
       <Label text="Rotazione pagine non A4 Portrait:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
       <CheckBox fx:id="rotateClockwise" text="Forza rotazione oraria" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
       <CheckBox fx:id="rotateCounterClockwise" text="Forza rotazione antioraria" GridPane.columnIndex="2" GridPane.rowIndex="2"/>
-      <Label prefHeight="51.0" prefWidth="335.0" text="Unione dei File contenuti in una specifica Directory,&#10;l'accodamento dei file avviene in ordine alfabetico, &#10;i numeri saranno considerate lettere." textAlignment="CENTER" GridPane.columnIndex="0" GridPane.columnSpan="3" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.valignment="TOP"/>
+      <Label text="Formato pagina output:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+      <CheckBox fx:id="forceA4CheckBox" text="Forza foglio A4" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+      <Label prefHeight="51.0" prefWidth="335.0" text="Unione dei File contenuti in una specifica Directory,&#10;l'accodamento dei file avviene in ordine alfabetico, &#10;i numeri saranno considerate lettere." textAlignment="CENTER" GridPane.columnIndex="0" GridPane.columnSpan="3" GridPane.halignment="CENTER" GridPane.rowIndex="4" GridPane.valignment="TOP"/>
     </GridPane>
   </center>
 

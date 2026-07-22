@@ -1,7 +1,6 @@
 package olivieri.alex.util;
 
 import com.itextpdf.kernel.pdf.PdfDocument;
-import com.itextpdf.kernel.pdf.PdfReader;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import olivieri.alex.App;
 import olivieri.alex.quality.AuditLogger;
@@ -47,8 +46,8 @@ public class PdfAlternatingMergeService {
                 Files.createDirectories(parent);
             }
 
-            try (PdfDocument firstDoc = new PdfDocument(new PdfReader(firstFile.toString()));
-                    PdfDocument secondDoc = new PdfDocument(new PdfReader(secondFile.toString()));
+            try (PdfDocument firstDoc = new PdfDocument(App.newPdfReader(firstFile));
+                    PdfDocument secondDoc = new PdfDocument(App.newPdfReader(secondFile));
                     PdfWriter writer = new PdfWriter(outputFile.toString(), App.writerProperties);
                     PdfDocument target = new PdfDocument(writer)) {
                 copyAlternatingBlocks(firstDoc, secondDoc, target, firstChunkSize, secondChunkSize);

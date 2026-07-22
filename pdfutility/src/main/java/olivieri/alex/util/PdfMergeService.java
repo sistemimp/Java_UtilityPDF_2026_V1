@@ -86,12 +86,18 @@ public class PdfMergeService {
     private static final float A4_TOLERANCE = 2.0f;
 
     public Path mergeDirectory(Path sourceDirectory, Path outputFile) throws IOException {
-        return mergeDirectory(sourceDirectory, outputFile, RotationMode.NONE);
+        return mergeDirectory(sourceDirectory, outputFile, RotationMode.NONE, false);
     }
 
     public Path mergeDirectory(Path sourceDirectory, Path outputFile, RotationMode rotationMode) throws IOException {
+        return mergeDirectory(sourceDirectory, outputFile, rotationMode, false);
+    }
+
+    public Path mergeDirectory(Path sourceDirectory, Path outputFile, RotationMode rotationMode, boolean forceA4PageSize)
+            throws IOException {
         RotationMode effectiveRotation = rotationMode == null ? RotationMode.NONE : rotationMode;
-        String details = "sourceDir=" + sourceDirectory + ",output=" + outputFile + ",rotation=" + effectiveRotation;
+        String details = "sourceDir=" + sourceDirectory + ",output=" + outputFile + ",rotation=" + effectiveRotation
+                + ",forceA4=" + forceA4PageSize;
         try {
             if (sourceDirectory == null || !Files.isDirectory(sourceDirectory)) {
                 throw new IllegalArgumentException("Percorso sorgente non valido o non e una cartella.");
@@ -102,7 +108,7 @@ public class PdfMergeService {
                 throw new IllegalArgumentException("Nessun file PDF trovato nella cartella selezionata.");
             }
 
-            mergeFiles(pdfFiles, outputFile, effectiveRotation);
+            mergeFiles(pdfFiles, outputFile, effectiveRotation, forceA4PageSize);
 
             AuditLogger.logSuccess("SERVICE_PDF_MERGE", details, outputFile);
             return outputFile;
@@ -146,7 +152,7 @@ public class PdfMergeService {
                 Path lastPdf = groupFiles.get(groupFiles.size() - 1);
                 String outputName = buildBatchOutputName(sanitizedPrefix, groupIndex, groupDigits, firstPdf, lastPdf);
                 Path groupOutput = outputDirectory.resolve(outputName);
-                mergeFiles(groupFiles, groupOutput, effectiveRotation);
+                mergeFiles(groupFiles, groupOutput, effectiveRotation, false);
                 createdFiles.add(groupOutput);
             }
 
@@ -189,16 +195,18 @@ public class PdfMergeService {
         return normalized;
     }
 
-    private void copyDocumentPages(PdfDocument source, PdfDocument target, RotationMode rotationMode)
+    private void copyDocumentPages(PdfDocument source, PdfDocument target, RotationMode rotationMode,
+            boolean forceA4PageSize)
             throws IOException {
         int totalPages = source.getNumberOfPages();
         for (int pageIndex = 1; pageIndex <= totalPages; pageIndex++) {
             PdfPage sourcePage = source.getPage(pageIndex);
-            copySinglePage(sourcePage, target, rotationMode);
+            copySinglePage(sourcePage, target, rotationMode, forceA4PageSize);
         }
     }
 
-    private void copySinglePage(PdfPage sourcePage, PdfDocument targetDocument, RotationMode rotationMode)
+    private void copySinglePage(PdfPage sourcePage, PdfDocument targetDocument, RotationMode rotationMode,
+            boolean forceA4PageSize)
             throws IOException {
         boolean rotateRequested = rotationMode != RotationMode.NONE && !isA4Portrait(sourcePage);
         int sourceRotation = normalizeRotation(sourcePage.getRotation());
@@ -207,19 +215,20 @@ public class PdfMergeService {
 
         Rectangle originalSize = sourcePage.getPageSize();
         PageSize baseSize = new PageSize(originalSize.getWidth(), originalSize.getHeight());
-        PageSize finalSize = needsDimensionSwap(totalRotation)
-                ? new PageSize(baseSize.getHeight(), baseSize.getWidth())
-                : baseSize;
+        PageSize finalSize = forceA4PageSize ? new PageSize(A4_WIDTH, A4_HEIGHT)
+                : (needsDimensionSwap(totalRotation)
+                        ? new PageSize(baseSize.getHeight(), baseSize.getWidth())
+                        : baseSize);
 
         PdfPage targetPage = targetDocument.addNewPage(finalSize);
         PdfCanvas canvas = new PdfCanvas(targetPage);
-        applyRotationTransform(canvas, totalRotation, baseSize, finalSize);
-
         PdfFormXObject pageContent = sourcePage.copyAsFormXObject(targetDocument);
+        applyPageTransform(canvas, totalRotation, baseSize, finalSize, forceA4PageSize);
         canvas.addXObjectAt(pageContent, 0, 0);
     }
 
-    private void mergeFiles(List<Path> pdfFiles, Path outputFile, RotationMode rotationMode) throws IOException {
+    private void mergeFiles(List<Path> pdfFiles, Path outputFile, RotationMode rotationMode, boolean forceA4PageSize)
+            throws IOException {
         if (pdfFiles == null || pdfFiles.isEmpty()) {
             throw new IllegalArgumentException("Nessun file PDF da unire.");
         }
@@ -233,7 +242,7 @@ public class PdfMergeService {
                 PdfDocument targetDocument = new PdfDocument(writer)) {
             for (Path pdfFile : pdfFiles) {
                 try (PdfDocument sourceDocument = new PdfDocument(new PdfReader(pdfFile.toString()))) {
-                    copyDocumentPages(sourceDocument, targetDocument, rotationMode);
+                    copyDocumentPages(sourceDocument, targetDocument, rotationMode, forceA4PageSize);
                 }
             }
         }
@@ -271,19 +280,110 @@ public class PdfMergeService {
         return rotation % 180 != 0;
     }
 
-    private static void applyRotationTransform(PdfCanvas canvas, int rotation, PageSize baseSize, PageSize finalSize) {
+    private static void applyPageTransform(PdfCanvas canvas, int rotation, PageSize baseSize, PageSize finalSize,
+            boolean fitIntoTargetPage) {
+        TransformData transform = computeTransformData(rotation, baseSize, finalSize, fitIntoTargetPage);
+        canvas.concatMatrix(transform.a, transform.b, transform.c, transform.d, transform.e, transform.f);
+    }
+
+    private static TransformData computeTransformData(int rotation, PageSize baseSize, PageSize finalSize,
+            boolean fitIntoTargetPage) {
+        float a;
+        float b;
+        float c;
+        float d;
         switch (rotation) {
             case 90:
-                canvas.concatMatrix(0, 1, -1, 0, finalSize.getWidth(), 0);
+                a = 0f;
+                b = 1f;
+                c = -1f;
+                d = 0f;
                 break;
             case 180:
-                canvas.concatMatrix(-1, 0, 0, -1, baseSize.getWidth(), baseSize.getHeight());
+                a = -1f;
+                b = 0f;
+                c = 0f;
+                d = -1f;
                 break;
             case 270:
-                canvas.concatMatrix(0, -1, 1, 0, 0, finalSize.getHeight());
+                a = 0f;
+                b = -1f;
+                c = 1f;
+                d = 0f;
                 break;
             default:
+                a = 1f;
+                b = 0f;
+                c = 0f;
+                d = 1f;
                 break;
+        }
+
+        float width = baseSize.getWidth();
+        float height = baseSize.getHeight();
+
+        float[] xs = new float[] { 0f, width, 0f, width };
+        float[] ys = new float[] { 0f, 0f, height, height };
+
+        float minX = Float.POSITIVE_INFINITY;
+        float maxX = Float.NEGATIVE_INFINITY;
+        float minY = Float.POSITIVE_INFINITY;
+        float maxY = Float.NEGATIVE_INFINITY;
+
+        for (int i = 0; i < xs.length; i++) {
+            float tx = a * xs[i] + c * ys[i];
+            float ty = b * xs[i] + d * ys[i];
+            minX = Math.min(minX, tx);
+            maxX = Math.max(maxX, tx);
+            minY = Math.min(minY, ty);
+            maxY = Math.max(maxY, ty);
+        }
+
+        float rotatedWidth = Math.max(maxX - minX, 0f);
+        float rotatedHeight = Math.max(maxY - minY, 0f);
+
+        float scale = 1f;
+        if (fitIntoTargetPage && rotatedWidth > 0f && rotatedHeight > 0f) {
+            float scaleX = finalSize.getWidth() / rotatedWidth;
+            float scaleY = finalSize.getHeight() / rotatedHeight;
+            scale = Math.min(scaleX, scaleY);
+            if (!Float.isFinite(scale) || scale <= 0f) {
+                scale = 1f;
+            } else if (scale > 1f) {
+                scale = 1f;
+            }
+        }
+
+        float drawnWidth = rotatedWidth * scale;
+        float drawnHeight = rotatedHeight * scale;
+        float offsetX = (finalSize.getWidth() - drawnWidth) / 2f;
+        float offsetY = (finalSize.getHeight() - drawnHeight) / 2f;
+
+        float scaledA = a * scale;
+        float scaledB = b * scale;
+        float scaledC = c * scale;
+        float scaledD = d * scale;
+        float e = offsetX - (minX * scale);
+        float f = offsetY - (minY * scale);
+
+        return new TransformData(scaledA, scaledB, scaledC, scaledD, e, f);
+    }
+
+    private static final class TransformData {
+        private final float a;
+        private final float b;
+        private final float c;
+        private final float d;
+        private final float e;
+        private final float f;
+
+        private TransformData(float a, float b, float c, float d, float e, float f) {
+            this.a = a;
+            this.b = b;
+            this.c = c;
+            this.d = d;
+            this.e = e;
+            this.f = f;
         }
     }
 

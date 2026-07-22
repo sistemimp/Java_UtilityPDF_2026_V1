@@ -10,7 +10,10 @@ import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
 import com.itextpdf.kernel.pdf.CompressionConstants;
+import com.itextpdf.kernel.pdf.MemoryLimitsAwareHandler;
 import com.itextpdf.kernel.pdf.PdfVersion;
+import com.itextpdf.kernel.pdf.PdfReader;
+import com.itextpdf.kernel.pdf.ReaderProperties;
 import com.itextpdf.kernel.pdf.WriterProperties;
 
 import olivieri.alex.quality.AuditLogger;
@@ -44,6 +47,11 @@ import java.util.List;
 import java.util.Locale;
 
 public class App {
+    private static final int DEFAULT_MAX_XREF_ELEMENTS = Integer.getInteger(
+            "pdfutility.itext.maxXrefElements", 20_000_000);
+    private static final long DEFAULT_MAX_DECOMPRESSED_STREAMS_SUM = Long.getLong(
+            "pdfutility.itext.maxDecompressedStreamsSum", 1_073_741_824L);
+
     private final PdfMergeService mergeService = new PdfMergeService();
     private final PdfOptimizer optimizer = new PdfOptimizer();
     private final RisoGl9730Optimizer risoOptimizer = new RisoGl9730Optimizer();
@@ -66,6 +74,17 @@ public class App {
 
     public static final WriterProperties writerProperties = new WriterProperties().setPdfVersion(PdfVersion.PDF_1_7)
             .useSmartMode().setFullCompressionMode(true).setCompressionLevel(CompressionConstants.BEST_COMPRESSION);
+
+    public static ReaderProperties createReaderProperties() {
+        MemoryLimitsAwareHandler handler = new MemoryLimitsAwareHandler();
+        handler.setMaxNumberOfElementsInXrefStructure(DEFAULT_MAX_XREF_ELEMENTS);
+        handler.setMaxSizeOfDecompressedPdfStreamsSum(DEFAULT_MAX_DECOMPRESSED_STREAMS_SUM);
+        return new ReaderProperties().setMemoryLimitsAwareHandler(handler);
+    }
+
+    public static PdfReader newPdfReader(Path inputFile) throws IOException {
+        return new PdfReader(inputFile.toString(), createReaderProperties()).setMemorySavingMode(true);
+    }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {

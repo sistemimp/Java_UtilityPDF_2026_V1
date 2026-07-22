@@ -4,6 +4,7 @@
 2. Genera l'installer nativo con:
 
    ```sh
+   cd pdfutility
    mvn clean package -Pinstaller jpackage:jpackage
    ```
 

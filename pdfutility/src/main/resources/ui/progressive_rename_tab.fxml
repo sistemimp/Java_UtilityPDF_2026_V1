@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/22.0.2" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="olivieri.alex.fx.tab.FxProgressiveRenameTabContentController">
+  <center>
+    <GridPane hgap="10" vgap="10">
+      <padding>
+        <Insets bottom="10" left="10" right="10" top="10"/>
+      </padding>
+      <Label text="Cartella PDF:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+      <TextField fx:id="progressiveRenameDirectoryField" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+      <Button fx:id="progressiveRenameDirectoryBrowse" text="Cartella PDF" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+      <Label text="Lunghezza X (zeri):" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+      <Spinner fx:id="progressiveRenameWidthSpinner" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="1">
+        <valueFactory>
+          <SpinnerValueFactory.IntegerSpinnerValueFactory initialValue="3" max="12" min="1"/>
+        </valueFactory>
+      </Spinner>
+    </GridPane>
+  </center>
+
+  <bottom>
+    <HBox alignment="CENTER_RIGHT" spacing="10">
+      <padding>
+        <Insets bottom="10" left="10" right="12" top="8"/>
+      </padding>
+      <ProgressIndicator fx:id="progressiveRenameProgress" maxHeight="24" maxWidth="24" visible="false"/>
+      <Button fx:id="progressiveRenameButton" text="Rinomina progressiva"/>
+    </HBox>
+  </bottom>
+</BorderPane>

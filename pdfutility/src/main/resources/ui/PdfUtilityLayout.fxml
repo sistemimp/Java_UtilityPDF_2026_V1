@@ -220,6 +220,13 @@
                                 </bottom>
                               </BorderPane>
                             </Tab>
+                            <Tab fx:id="lastPageRemovalTab" text="Rimuovi ultima pagina">
+                              <BorderPane>
+                                <center>
+                                  <Label text="Caricamento modulo rimozione ultima pagina..." wrapText="true"/>
+                                </center>
+                              </BorderPane>
+                            </Tab>
                           </tabs>
                         </TabPane>
                       </center>
@@ -512,6 +519,13 @@
                       </bottom>
                     </BorderPane>
                   </Tab>
+                  <Tab fx:id="shipmentSplitTab" text="Split per invii">
+                    <BorderPane>
+                      <center>
+                        <Label text="Caricamento modulo split per invii..." wrapText="true"/>
+                      </center>
+                    </BorderPane>
+                  </Tab>
                 </tabs>
               </TabPane>
             </center>
@@ -556,6 +570,13 @@
                           <Button fx:id="csvRenameButton" text="Rinomina"/>
                         </HBox>
                       </bottom>
+                    </BorderPane>
+                  </Tab>
+                  <Tab fx:id="progressiveRenameTab" text="Rinomina progressiva">
+                    <BorderPane>
+                      <center>
+                        <Label text="Caricamento modulo rinomina progressiva..." wrapText="true"/>
+                      </center>
                     </BorderPane>
                   </Tab>
                   <Tab fx:id="csvTxtMergeTab" text="Unisci CSV/TXT">
@@ -657,6 +678,13 @@
                           <Button fx:id="csvToExcelButton" text="Converti"/>
                         </HBox>
                       </bottom>
+                    </BorderPane>
+                  </Tab>
+                  <Tab fx:id="pdfSearchExcelTab" text="Estrai da PDF">
+                    <BorderPane>
+                      <center>
+                        <Label text="Caricamento modulo estrazione PDF in Excel..." wrapText="true"/>
+                      </center>
                     </BorderPane>
                   </Tab>
                 </tabs>

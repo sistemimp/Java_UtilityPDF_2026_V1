@@ -30,6 +30,8 @@ public final class FxMergeTabContentController {
     private CheckBox rotateClockwise;
     @FXML
     private CheckBox rotateCounterClockwise;
+    @FXML
+    private CheckBox forceA4CheckBox;
 
     private PdfUtilityFxController controller;
     private Window owner;
@@ -51,7 +53,7 @@ public final class FxMergeTabContentController {
                 @Override
                 protected Path call() throws Exception {
                     return controller.mergeDirectory(mergeDirectoryField.getText(), mergeOutputField.getText(),
-                            extractRotationMode());
+                            extractRotationMode(), isForceA4Enabled());
                 }
             };
             bindUiState(mergeButton, mergeProgress, task);
@@ -91,6 +93,10 @@ public final class FxMergeTabContentController {
             return RotationMode.COUNTERCLOCKWISE;
         }
         return RotationMode.NONE;
+    }
+
+    private boolean isForceA4Enabled() {
+        return forceA4CheckBox != null && forceA4CheckBox.isSelected();
     }
 
     private static String getRootCauseMessage(Throwable throwable, String fallback) {

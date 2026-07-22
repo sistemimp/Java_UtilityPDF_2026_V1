@@ -13,6 +13,7 @@ import olivieri.alex.util.PdfConditionalBlankPageInserter;
 import olivieri.alex.util.PdfCsvRenamer;
 import olivieri.alex.util.PdfFolderStamper;
 import olivieri.alex.util.PdfKeywordStamper;
+import olivieri.alex.util.PdfLastPageRemover;
 import olivieri.alex.util.PdfMarkerSplitter;
 import olivieri.alex.util.PdfMergeService;
 import olivieri.alex.util.PdfMergeService.BatchMergeResult;
@@ -20,8 +21,11 @@ import olivieri.alex.util.PdfMergeService.RotationMode;
 import olivieri.alex.util.PdfOptimizer;
 import olivieri.alex.util.PdfPairMerger;
 import olivieri.alex.util.PdfPageFilter;
+import olivieri.alex.util.PdfProgressiveRenamer;
 import olivieri.alex.util.PdfQrRenamer;
 import olivieri.alex.util.PdfRepeater;
+import olivieri.alex.util.PdfSearchExcelExtractor;
+import olivieri.alex.util.PdfShipmentSplitter;
 import olivieri.alex.util.PdfStringPageRemover;
 import olivieri.alex.util.PdfToWordConverter;
 import olivieri.alex.util.RisoComcolorGd9630Optimizer;
@@ -50,13 +54,17 @@ public final class PdfUtilityFxController {
     private final PdfPairMerger pairMerger = new PdfPairMerger();
     private final PdfAlternatingMergeService alternatingMergeService = new PdfAlternatingMergeService();
     private final PdfCsvRenamer csvRenamer = new PdfCsvRenamer();
+    private final PdfProgressiveRenamer progressiveRenamer = new PdfProgressiveRenamer();
     private final PdfQrRenamer qrRenamer = new PdfQrRenamer();
     private final CsvToExcelConverter csvToExcelConverter = new CsvToExcelConverter();
+    private final PdfSearchExcelExtractor pdfSearchExcelExtractor = new PdfSearchExcelExtractor();
     private final CsvTxtMerger csvTxtMerger = new CsvTxtMerger();
     private final DuFileMerger duFileMerger = new DuFileMerger();
     private final PdfFolderStamper folderStamper = new PdfFolderStamper();
     private final PdfKeywordStamper keywordStamper = new PdfKeywordStamper();
+    private final PdfLastPageRemover lastPageRemover = new PdfLastPageRemover();
     private final PdfMarkerSplitter markerSplitter = new PdfMarkerSplitter();
+    private final PdfShipmentSplitter shipmentSplitter = new PdfShipmentSplitter();
     private final PdfStringPageRemover stringPageRemover = new PdfStringPageRemover();
     private final PdfToWordConverter pdfToWordConverter = new PdfToWordConverter();
     private final PdfBlankPageInserter blankPageInserter = new PdfBlankPageInserter();
@@ -66,16 +74,22 @@ public final class PdfUtilityFxController {
             .useSmartMode().setFullCompressionMode(true).setCompressionLevel(CompressionConstants.BEST_COMPRESSION);
 
     public Path mergeDirectory(String directoryText, String outputText) throws Exception {
-        return mergeDirectory(directoryText, outputText, RotationMode.NONE);
+        return mergeDirectory(directoryText, outputText, RotationMode.NONE, false);
     }
 
     public Path mergeDirectory(String directoryText, String outputText, RotationMode rotationMode) throws Exception {
+        return mergeDirectory(directoryText, outputText, rotationMode, false);
+    }
+
+    public Path mergeDirectory(String directoryText, String outputText, RotationMode rotationMode,
+            boolean forceA4PageSize) throws Exception {
         Path directory = requireDirectory(directoryText, "Seleziona una cartella che contiene i PDF.");
         Path outputPath = resolvePdfOutput(directory.toAbsolutePath(), outputText, "merged.pdf");
         RotationMode effectiveMode = rotationMode == null ? RotationMode.NONE : rotationMode;
-        String details = "source=" + directory.toAbsolutePath() + ",rotation=" + effectiveMode;
+        String details = "source=" + directory.toAbsolutePath() + ",rotation=" + effectiveMode + ",forceA4="
+                + forceA4PageSize;
         try {
-            Path result = mergeService.mergeDirectory(directory, outputPath, effectiveMode);
+            Path result = mergeService.mergeDirectory(directory, outputPath, effectiveMode, forceA4PageSize);
             auditSuccess("PDF_MERGE", details, result);
             return result;
         } catch (Exception ex) {
@@ -275,6 +289,19 @@ public final class PdfUtilityFxController {
         }
     }
 
+    public PdfLastPageRemover.Result removeLastPagesFromDirectory(String directoryText) throws Exception {
+        Path directory = requireDirectory(directoryText, "Seleziona la cartella dei PDF.");
+        String details = "directory=" + directory.toAbsolutePath();
+        try {
+            PdfLastPageRemover.Result result = lastPageRemover.removeLastPageFromDirectory(directory);
+            auditSuccess("PDF_REMOVE_LAST_PAGE", details, result.getOutputDirectory());
+            return result;
+        } catch (Exception ex) {
+            auditFailure("PDF_REMOVE_LAST_PAGE", details, directory.toAbsolutePath(), ex);
+            throw ex;
+        }
+    }
+
     public PdfStringPageRemover.Result removePagesContaining(String inputText, String outputText, String query,
             boolean caseSensitive) throws Exception {
         Path inputPath = requireRegularFile(inputText, "Seleziona un file PDF sorgente.",
@@ -329,6 +356,47 @@ public final class PdfUtilityFxController {
         }
     }
 
+    public PdfShipmentSplitter.Result splitByShipmentCount(String pdfText, String markerText, boolean caseSensitive,
+            int shipmentsPerFile, String baseDirText, String folderNameText, String outputPrefixText)
+            throws Exception {
+        Path pdfPath = requireRegularFile(pdfText, "Seleziona un file PDF.", "Il file specificato non esiste.");
+        Path baseDir = requireDirectory(baseDirText, "Seleziona una cartella base.");
+        String sanitizedMarker = safeTrim(markerText);
+        if (sanitizedMarker.isEmpty()) {
+            throw new IllegalArgumentException("Inserisci la stringa marker.");
+        }
+        if (shipmentsPerFile < 1) {
+            throw new IllegalArgumentException("Il numero di invii per file deve essere almeno 1.");
+        }
+        String folderName = safeTrim(folderNameText);
+        if (folderName.isEmpty()) {
+            folderName = buildDefaultShipmentSplitFolderName(sanitizedMarker);
+        }
+        folderName = sanitizeForFolderName(folderName);
+        if (folderName.isEmpty()) {
+            throw new IllegalArgumentException("Nome cartella dei risultati non valido.");
+        }
+        String outputPrefix = safeTrim(outputPrefixText);
+        if (outputPrefix.isEmpty()) {
+            outputPrefix = buildDefaultShipmentSplitPrefix(pdfPath);
+        }
+        outputPrefix = sanitizeForFileName(outputPrefix);
+        if (outputPrefix.isEmpty()) {
+            throw new IllegalArgumentException("Prefisso file output non valido.");
+        }
+        String details = "input=" + pdfPath.toAbsolutePath() + ",marker=" + sanitizedMarker + ",folder=" + folderName
+                + ",prefix=" + outputPrefix + ",shipmentsPerFile=" + shipmentsPerFile;
+        try {
+            PdfShipmentSplitter.Result result = shipmentSplitter.splitByShipmentCount(pdfPath, baseDir, folderName,
+                    outputPrefix, sanitizedMarker, caseSensitive, shipmentsPerFile);
+            auditSuccess("PDF_SHIPMENT_SPLIT", details, result.getOutputDirectory());
+            return result;
+        } catch (Exception ex) {
+            auditFailure("PDF_SHIPMENT_SPLIT", details, baseDir, ex);
+            throw ex;
+        }
+    }
+
     public PdfCsvRenamer.Result renameFromCsv(String directoryText, String csvText) throws Exception {
         return renameFromCsv(directoryText, csvText, false);
     }
@@ -345,6 +413,19 @@ public final class PdfUtilityFxController {
             return result;
         } catch (Exception ex) {
             auditFailure("PDF_CSV_RENAME", details, directory.toAbsolutePath(), ex);
+            throw ex;
+        }
+    }
+
+    public PdfProgressiveRenamer.Result renameProgressive(String directoryText, int width) throws Exception {
+        Path directory = requireDirectory(directoryText, "Seleziona la cartella PDF.");
+        String details = "directory=" + directory.toAbsolutePath() + ",width=" + width;
+        try {
+            PdfProgressiveRenamer.Result result = progressiveRenamer.rename(directory, width);
+            auditSuccess("PDF_PROGRESSIVE_RENAME", details, directory.toAbsolutePath());
+            return result;
+        } catch (Exception ex) {
+            auditFailure("PDF_PROGRESSIVE_RENAME", details, directory.toAbsolutePath(), ex);
             throw ex;
         }
     }
@@ -380,6 +461,24 @@ public final class PdfUtilityFxController {
             return result;
         } catch (Exception ex) {
             auditFailure("CSV_TO_EXCEL", details, outputPath, ex);
+            throw ex;
+        }
+    }
+
+    public PdfSearchExcelExtractor.ExtractionResult extractPdfSearchToExcel(String pdfText, String searchKey,
+            boolean caseSensitive, String excelText) throws Exception {
+        Path pdfPath = requireRegularFile(pdfText, "Seleziona il file PDF.", "Il file PDF non esiste.");
+        Path outputPath = resolvePdfSearchExcelOutput(pdfPath, searchKey, excelText);
+        String sanitizedKey = safeTrim(searchKey);
+        String details = "pdf=" + pdfPath.toAbsolutePath() + ",excel=" + outputPath + ",searchKey=" + sanitizedKey
+                + ",caseSensitive=" + caseSensitive;
+        try {
+            PdfSearchExcelExtractor.ExtractionResult result = pdfSearchExcelExtractor.extract(pdfPath, sanitizedKey,
+                    caseSensitive, outputPath);
+            auditSuccess("PDF_SEARCH_TO_EXCEL", details + ",matches=" + result.extractedRows(), result.outputFile());
+            return result;
+        } catch (Exception ex) {
+            auditFailure("PDF_SEARCH_TO_EXCEL", details, outputPath, ex);
             throw ex;
         }
     }
@@ -576,6 +675,29 @@ public final class PdfUtilityFxController {
         return candidate.normalize();
     }
 
+    Path resolvePdfSearchExcelOutput(Path pdfPath, String searchKey, String outputText) {
+        Path base = pdfPath != null ? pdfPath.toAbsolutePath().getParent() : Paths.get("").toAbsolutePath();
+        String sanitized = outputText == null ? "" : outputText.trim();
+        Path candidate;
+        if (sanitized.isEmpty()) {
+            String suggestion = buildDefaultPdfSearchExcelName(pdfPath, searchKey);
+            if (suggestion.isEmpty()) {
+                throw new IllegalArgumentException("Percorso Excel non valido.");
+            }
+            candidate = Paths.get(suggestion);
+        } else {
+            candidate = Paths.get(sanitized);
+        }
+        if (!candidate.isAbsolute()) {
+            candidate = (base != null ? base : Paths.get("").toAbsolutePath()).resolve(candidate);
+        }
+        String filename = candidate.getFileName().toString();
+        if (!filename.toLowerCase(Locale.ROOT).endsWith(".xlsx")) {
+            candidate = candidate.resolveSibling(filename + ".xlsx");
+        }
+        return candidate.normalize();
+    }
+
     Path resolveDocxOutput(Path baseDirectory, String outputText, String defaultName) {
         Path base = baseDirectory != null ? baseDirectory : Paths.get("").toAbsolutePath();
         String sanitized = outputText == null ? "" : outputText.trim();
@@ -702,6 +824,42 @@ public final class PdfUtilityFxController {
         return sanitized + "_split";
     }
 
+    public String buildDefaultShipmentSplitFolderName(String marker) {
+        String sanitized = sanitizeForFolderName(marker);
+        if (sanitized.isEmpty()) {
+            return "invii_split";
+        }
+        return sanitized + "_invii_split";
+    }
+
+    public String buildDefaultShipmentSplitPrefix(Path inputPath) {
+        if (inputPath == null || inputPath.getFileName() == null) {
+            return "invii";
+        }
+        String filename = inputPath.getFileName().toString();
+        int dotIndex = filename.lastIndexOf('.');
+        String baseName = dotIndex > 0 ? filename.substring(0, dotIndex) : filename;
+        if (baseName.isEmpty()) {
+            baseName = "invii";
+        }
+        return sanitizeForFileName(baseName) + "_invii";
+    }
+
+    public String buildDefaultShipmentSplitPrefix(String inputText) {
+        if (inputText == null) {
+            return "invii";
+        }
+        String trimmed = inputText.trim();
+        if (trimmed.isEmpty()) {
+            return "invii";
+        }
+        try {
+            return buildDefaultShipmentSplitPrefix(Paths.get(trimmed));
+        } catch (Exception ex) {
+            return "invii";
+        }
+    }
+
     public String buildDefaultMergedTextName(Path inputPath) {
         Path absolute = inputPath.toAbsolutePath();
         String filename = absolute.getFileName() != null ? absolute.getFileName().toString() : absolute.toString();
@@ -766,6 +924,43 @@ public final class PdfUtilityFxController {
         }
         try {
             return buildDefaultExcelName(Paths.get(trimmed));
+        } catch (Exception ex) {
+            return "";
+        }
+    }
+
+    public String buildDefaultPdfSearchExcelName(Path pdfPath, String searchKey) {
+        if (pdfPath == null) {
+            return "";
+        }
+        Path absolute = pdfPath.toAbsolutePath();
+        String filename = absolute.getFileName() != null ? absolute.getFileName().toString() : absolute.toString();
+        if (filename == null || filename.isEmpty()) {
+            filename = "pdf";
+        }
+        int dotIndex = filename.lastIndexOf('.');
+        String baseName = dotIndex > 0 ? filename.substring(0, dotIndex) : filename;
+        if (baseName.isEmpty()) {
+            baseName = "pdf";
+        }
+        String sanitizedKey = sanitizeForFileName(searchKey);
+        String suffix = sanitizedKey.isEmpty() ? "_estrazione" : "_estrazione_" + sanitizedKey;
+        Path parent = absolute.getParent();
+        Path suggestion = parent != null ? parent.resolve(baseName + suffix + ".xlsx")
+                : Paths.get(baseName + suffix + ".xlsx").toAbsolutePath();
+        return suggestion.toAbsolutePath().toString();
+    }
+
+    public String buildDefaultPdfSearchExcelName(String pdfPathText, String searchKey) {
+        if (pdfPathText == null) {
+            return "";
+        }
+        String trimmed = pdfPathText.trim();
+        if (trimmed.isEmpty()) {
+            return "";
+        }
+        try {
+            return buildDefaultPdfSearchExcelName(Paths.get(trimmed), searchKey);
         } catch (Exception ex) {
             return "";
         }
