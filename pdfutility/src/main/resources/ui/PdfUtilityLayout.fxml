@@ -631,6 +631,13 @@
             </center>
           </BorderPane>
         </Tab>
+        <Tab fx:id="folderProgressiveCreatorTab" text="Cartelle">
+          <BorderPane>
+            <center>
+              <Label text="Caricamento modulo creazione cartelle..." wrapText="true"/>
+            </center>
+          </BorderPane>
+        </Tab>
         <Tab fx:id="qrMainTab" text="Rinomina QR">
           <BorderPane>
             <center>

@@ -17,6 +17,8 @@ E:\Java_Project\Java_UtilityPDF_2026\pdfutility\src\main\java\olivieri\alex\fx\t
 E:\Java_Project\Java_UtilityPDF_2026\pdfutility\src\main\java\olivieri\alex\fx\tab\FxCsvTxtMergeTabContentController.java
 E:\Java_Project\Java_UtilityPDF_2026\pdfutility\src\main\java\olivieri\alex\fx\tab\FxDuMergeTab.java
 E:\Java_Project\Java_UtilityPDF_2026\pdfutility\src\main\java\olivieri\alex\fx\tab\FxDuMergeTabContentController.java
+E:\Java_Project\Java_UtilityPDF_2026\pdfutility\src\main\java\olivieri\alex\fx\tab\FxFolderProgressiveCreatorTab.java
+E:\Java_Project\Java_UtilityPDF_2026\pdfutility\src\main\java\olivieri\alex\fx\tab\FxFolderProgressiveCreatorTabContentController.java
 E:\Java_Project\Java_UtilityPDF_2026\pdfutility\src\main\java\olivieri\alex\fx\tab\FxFolderStampTab.java
 E:\Java_Project\Java_UtilityPDF_2026\pdfutility\src\main\java\olivieri\alex\fx\tab\FxFolderStampTabContentController.java
 E:\Java_Project\Java_UtilityPDF_2026\pdfutility\src\main\java\olivieri\alex\fx\tab\FxIntervalMergeTab.java
@@ -80,6 +82,7 @@ E:\Java_Project\Java_UtilityPDF_2026\pdfutility\src\main\java\olivieri\alex\tab\
 E:\Java_Project\Java_UtilityPDF_2026\pdfutility\src\main\java\olivieri\alex\util\CsvToExcelConverter.java
 E:\Java_Project\Java_UtilityPDF_2026\pdfutility\src\main\java\olivieri\alex\util\CsvTxtMerger.java
 E:\Java_Project\Java_UtilityPDF_2026\pdfutility\src\main\java\olivieri\alex\util\DuFileMerger.java
+E:\Java_Project\Java_UtilityPDF_2026\pdfutility\src\main\java\olivieri\alex\util\FolderProgressiveCreator.java
 E:\Java_Project\Java_UtilityPDF_2026\pdfutility\src\main\java\olivieri\alex\util\PdfAlternatingMergeService.java
 E:\Java_Project\Java_UtilityPDF_2026\pdfutility\src\main\java\olivieri\alex\util\PdfBlankPageInserter.java
 E:\Java_Project\Java_UtilityPDF_2026\pdfutility\src\main\java\olivieri\alex\util\PdfConditionalBlankPageInserter.java

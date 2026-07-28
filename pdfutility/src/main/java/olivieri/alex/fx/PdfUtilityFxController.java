@@ -7,6 +7,7 @@ import olivieri.alex.quality.AuditLogger;
 import olivieri.alex.util.CsvToExcelConverter;
 import olivieri.alex.util.CsvTxtMerger;
 import olivieri.alex.util.DuFileMerger;
+import olivieri.alex.util.FolderProgressiveCreator;
 import olivieri.alex.util.PdfAlternatingMergeService;
 import olivieri.alex.util.PdfBlankPageInserter;
 import olivieri.alex.util.PdfConditionalBlankPageInserter;
@@ -60,6 +61,7 @@ public final class PdfUtilityFxController {
     private final PdfSearchExcelExtractor pdfSearchExcelExtractor = new PdfSearchExcelExtractor();
     private final CsvTxtMerger csvTxtMerger = new CsvTxtMerger();
     private final DuFileMerger duFileMerger = new DuFileMerger();
+    private final FolderProgressiveCreator folderProgressiveCreator = new FolderProgressiveCreator();
     private final PdfFolderStamper folderStamper = new PdfFolderStamper();
     private final PdfKeywordStamper keywordStamper = new PdfKeywordStamper();
     private final PdfLastPageRemover lastPageRemover = new PdfLastPageRemover();
@@ -426,6 +428,23 @@ public final class PdfUtilityFxController {
             return result;
         } catch (Exception ex) {
             auditFailure("PDF_PROGRESSIVE_RENAME", details, directory.toAbsolutePath(), ex);
+            throw ex;
+        }
+    }
+
+    public FolderProgressiveCreator.Result createProgressiveFolders(String baseDirectoryText, String prefix,
+            int folderCount) throws Exception {
+        Path baseDirectory = requireDirectory(baseDirectoryText, "Seleziona la cartella di destinazione.");
+        String sanitizedPrefix = safeTrim(prefix);
+        String details = "baseDirectory=" + baseDirectory.toAbsolutePath() + ",prefix=" + sanitizedPrefix
+                + ",folderCount=" + folderCount;
+        try {
+            FolderProgressiveCreator.Result result = folderProgressiveCreator.create(baseDirectory, sanitizedPrefix,
+                    folderCount);
+            auditSuccess("FOLDER_PROGRESSIVE_CREATE", details, baseDirectory.toAbsolutePath());
+            return result;
+        } catch (Exception ex) {
+            auditFailure("FOLDER_PROGRESSIVE_CREATE", details, baseDirectory.toAbsolutePath(), ex);
             throw ex;
         }
     }

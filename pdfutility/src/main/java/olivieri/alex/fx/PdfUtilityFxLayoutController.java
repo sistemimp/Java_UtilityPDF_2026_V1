@@ -12,6 +12,7 @@ import olivieri.alex.fx.tab.FxCsvRenameTab;
 import olivieri.alex.fx.tab.FxCsvToExcelTab;
 import olivieri.alex.fx.tab.FxCsvTxtMergeTab;
 import olivieri.alex.fx.tab.FxDuMergeTab;
+import olivieri.alex.fx.tab.FxFolderProgressiveCreatorTab;
 import olivieri.alex.fx.tab.FxFolderStampTab;
 import olivieri.alex.fx.tab.FxIntervalMergeTab;
 import olivieri.alex.fx.tab.FxKeywordStampTab;
@@ -77,6 +78,8 @@ public class PdfUtilityFxLayoutController {
     @FXML
     private Tab duMergeTab;
     @FXML
+    private Tab folderProgressiveCreatorTab;
+    @FXML
     private Tab folderStampTab;
     @FXML
     private Tab keywordStampTab;
@@ -127,6 +130,7 @@ public class PdfUtilityFxLayoutController {
         populateTab(pdfSearchExcelTab, FxPdfSearchExcelTab.create(controller, ownerStage));
         populateTab(csvTxtMergeTab, FxCsvTxtMergeTab.create(controller, ownerStage));
         populateTab(duMergeTab, FxDuMergeTab.create(controller, ownerStage));
+        populateTab(folderProgressiveCreatorTab, FxFolderProgressiveCreatorTab.create(controller, ownerStage));
         populateTab(folderStampTab, FxFolderStampTab.create(controller, ownerStage));
         populateTab(keywordStampTab, FxKeywordStampTab.create(controller, ownerStage));
         populateTab(pdfToWordTab, FxPdfToWordTab.create(controller, ownerStage));
