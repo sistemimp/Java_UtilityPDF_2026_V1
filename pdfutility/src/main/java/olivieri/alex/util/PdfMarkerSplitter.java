@@ -28,10 +28,16 @@ public class PdfMarkerSplitter {
     public static class Result {
         private final Path outputDirectory;
         private final int documentCount;
+        private final int sourcePdfCount;
 
         public Result(Path outputDirectory, int documentCount) {
+            this(outputDirectory, documentCount, 1);
+        }
+
+        public Result(Path outputDirectory, int documentCount, int sourcePdfCount) {
             this.outputDirectory = outputDirectory;
             this.documentCount = documentCount;
+            this.sourcePdfCount = sourcePdfCount;
         }
 
         public Path getOutputDirectory() {
@@ -40,6 +46,10 @@ public class PdfMarkerSplitter {
 
         public int getDocumentCount() {
             return documentCount;
+        }
+
+        public int getSourcePdfCount() {
+            return sourcePdfCount;
         }
     }
 

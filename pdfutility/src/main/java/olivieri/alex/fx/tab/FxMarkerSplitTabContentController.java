@@ -14,14 +14,14 @@ import olivieri.alex.fx.PdfUtilityFxController;
 import olivieri.alex.util.PdfMarkerSplitter;
 
 import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public final class FxMarkerSplitTabContentController {
     @FXML
     private TextField markerPdfField;
     @FXML
     private Button markerPdfBrowse;
+    @FXML
+    private Button markerFolderBrowse;
     @FXML
     private TextField markerTextField;
     @FXML
@@ -57,6 +57,15 @@ public final class FxMarkerSplitTabContentController {
             }
         });
 
+        markerFolderBrowse.setOnAction(event -> {
+            DirectoryChooser chooser = new DirectoryChooser();
+            chooser.setTitle("Seleziona cartella PDF");
+            File selected = chooser.showDialog(owner);
+            if (selected != null) {
+                markerPdfField.setText(selected.getAbsolutePath());
+            }
+        });
+
         markerBaseBrowse.setOnAction(event -> {
             DirectoryChooser chooser = new DirectoryChooser();
             chooser.setTitle("Seleziona cartella base");
@@ -84,8 +93,9 @@ public final class FxMarkerSplitTabContentController {
             FxTabControllerSupport.bindUiState(markerButton, markerProgress, task);
             task.setOnSucceeded(e -> {
                 PdfMarkerSplitter.Result result = task.getValue();
-                String message = "Split completato!\nDocumenti generati: " + result.getDocumentCount()
-                        + "\nCartella risultati: " + result.getOutputDirectory();
+                String message = "Split completato!\nPDF elaborati: " + result.getSourcePdfCount()
+                        + "\nDocumenti generati: " + result.getDocumentCount() + "\nCartella risultati: "
+                        + result.getOutputDirectory();
                 FxDialogUtils.showInformation("Successo", message, owner);
             });
             task.setOnFailed(e -> FxDialogUtils.showError("Errore",

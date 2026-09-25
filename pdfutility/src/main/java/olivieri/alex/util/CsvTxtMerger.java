@@ -1,9 +1,10 @@
 package olivieri.alex.util;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.charset.MalformedInputException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -15,6 +16,8 @@ import olivieri.alex.quality.AuditLogger;
  * Utility that concatenates multiple CSV or TXT files into a single text file.
  */
 public class CsvTxtMerger {
+
+    private static final Charset WINDOWS_1252 = Charset.forName("windows-1252");
 
     /**
      * Merges the provided input files into {@code output}.
@@ -53,9 +56,11 @@ public class CsvTxtMerger {
             try (BufferedWriter writer = Files.newBufferedWriter(output, StandardCharsets.UTF_8)) {
                 boolean wroteAnyLine = false;
                 for (Path input : inputs) {
-                    try (BufferedReader reader = Files.newBufferedReader(input, StandardCharsets.UTF_8)) {
-                        String line;
-                        while ((line = reader.readLine()) != null) {
+                    List<String> lines = readLines(input);
+                    for (int index = 0; index < lines.size(); index++) {
+                        String line = lines.get(index);
+                        boolean isLastLine = index == lines.size() - 1;
+                        if (!isLastLine || !line.isBlank()) {
                             if (wroteAnyLine) {
                                 writer.newLine();
                             }
@@ -71,6 +76,14 @@ public class CsvTxtMerger {
         } catch (IOException | RuntimeException ex) {
             AuditLogger.logFailure("SERVICE_CSV_TXT_MERGE", details, output, ex);
             throw ex;
+        }
+    }
+
+    private List<String> readLines(Path input) throws IOException {
+        try {
+            return Files.readAllLines(input, StandardCharsets.UTF_8);
+        } catch (MalformedInputException ex) {
+            return Files.readAllLines(input, WINDOWS_1252);
         }
     }
 }

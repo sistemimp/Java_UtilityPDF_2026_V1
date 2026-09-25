@@ -38,8 +38,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Provides core PDF operations and helpers for the JavaFX UI, keeping logging
@@ -330,7 +333,7 @@ public final class PdfUtilityFxController {
 
     public PdfMarkerSplitter.Result splitByMarker(String pdfText, String markerText, boolean caseSensitive,
             String baseDirText, String folderNameText, boolean appendToExisting) throws Exception {
-        Path pdfPath = requireRegularFile(pdfText, "Seleziona un file PDF.", "Il file specificato non esiste.");
+        Path inputPath = requireFileOrDirectory(pdfText, "Seleziona un file PDF o una cartella che contiene PDF.");
         Path baseDir = requireDirectory(baseDirText, "Seleziona una cartella base.");
         String sanitizedMarker = safeTrim(markerText);
         if (sanitizedMarker.isEmpty()) {
@@ -344,16 +347,70 @@ public final class PdfUtilityFxController {
         if (folderName.isEmpty()) {
             throw new IllegalArgumentException("Nome cartella dei risultati non valido.");
         }
-        String details = "input=" + pdfPath.toAbsolutePath() + ",marker=" + sanitizedMarker + ",folder=" + folderName
+        if (Files.isDirectory(inputPath)) {
+            return splitDirectoryByMarker(inputPath, baseDir, folderName, sanitizedMarker, caseSensitive,
+                    appendToExisting);
+        }
+        if (!Files.isRegularFile(inputPath)) {
+            throw new IllegalArgumentException("Il file specificato non esiste.");
+        }
+        if (!isPdfFile(inputPath)) {
+            throw new IllegalArgumentException("Seleziona un file PDF.");
+        }
+
+        String details = "input=" + inputPath.toAbsolutePath() + ",marker=" + sanitizedMarker + ",folder=" + folderName
                 + ",append=" + appendToExisting;
         try {
-            PdfMarkerSplitter.Result result = markerSplitter.splitByMarker(pdfPath, baseDir, folderName,
+            PdfMarkerSplitter.Result result = markerSplitter.splitByMarker(inputPath, baseDir, folderName,
                     sanitizedMarker,
                     caseSensitive, appendToExisting);
             auditSuccess("PDF_MARKER_SPLIT", details, result.getOutputDirectory());
             return result;
         } catch (Exception ex) {
             auditFailure("PDF_MARKER_SPLIT", details, baseDir, ex);
+            throw ex;
+        }
+    }
+
+    private PdfMarkerSplitter.Result splitDirectoryByMarker(Path sourceDirectory, Path baseDir, String folderName,
+            String marker, boolean caseSensitive, boolean appendToExisting) throws Exception {
+        List<Path> pdfFiles = listPdfFiles(sourceDirectory);
+        if (pdfFiles.isEmpty()) {
+            throw new IllegalArgumentException("La cartella selezionata non contiene file PDF.");
+        }
+
+        Path outputRoot = baseDir.resolve(folderName).normalize();
+        String details = "directory=" + sourceDirectory.toAbsolutePath() + ",marker=" + marker + ",folder="
+                + folderName + ",append=" + appendToExisting + ",pdfCount=" + pdfFiles.size();
+        int documentCount = 0;
+        List<String> failures = new ArrayList<>();
+        try {
+            Files.createDirectories(outputRoot);
+            for (Path pdfFile : pdfFiles) {
+                String perFileFolderName = sanitizeForFolderName(stripExtension(pdfFile));
+                if (perFileFolderName.isEmpty()) {
+                    perFileFolderName = "pdf";
+                }
+                try {
+                    PdfMarkerSplitter.Result result = markerSplitter.splitByMarker(pdfFile, outputRoot,
+                            perFileFolderName, marker, caseSensitive, appendToExisting);
+                    documentCount += result.getDocumentCount();
+                } catch (Exception ex) {
+                    String fileName = pdfFile.getFileName() != null ? pdfFile.getFileName().toString()
+                            : pdfFile.toString();
+                    failures.add(fileName + ": " + ex.getMessage());
+                }
+            }
+            if (!failures.isEmpty()) {
+                throw new IOException("Split batch completato con errori su " + failures.size() + " PDF:\n"
+                        + String.join("\n", failures));
+            }
+            PdfMarkerSplitter.Result batchResult = new PdfMarkerSplitter.Result(outputRoot, documentCount,
+                    pdfFiles.size());
+            auditSuccess("PDF_MARKER_SPLIT_BATCH", details, outputRoot);
+            return batchResult;
+        } catch (Exception ex) {
+            auditFailure("PDF_MARKER_SPLIT_BATCH", details, outputRoot, ex);
             throw ex;
         }
     }
@@ -1230,6 +1287,31 @@ public final class PdfUtilityFxController {
         }
         String filename = path.getFileName().toString().toLowerCase(Locale.ROOT);
         return filename.endsWith(".du");
+    }
+
+    private boolean isPdfFile(Path path) {
+        if (path == null || path.getFileName() == null) {
+            return false;
+        }
+        return path.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(".pdf");
+    }
+
+    private List<Path> listPdfFiles(Path directory) throws IOException {
+        try (Stream<Path> stream = Files.list(directory)) {
+            return stream.filter(Files::isRegularFile)
+                    .filter(this::isPdfFile)
+                    .sorted(Comparator.comparing(path -> path.getFileName().toString(), String.CASE_INSENSITIVE_ORDER))
+                    .collect(Collectors.toList());
+        }
+    }
+
+    private String stripExtension(Path path) {
+        if (path == null || path.getFileName() == null) {
+            return "";
+        }
+        String filename = path.getFileName().toString();
+        int dotIndex = filename.lastIndexOf('.');
+        return dotIndex > 0 ? filename.substring(0, dotIndex) : filename;
     }
 
     private String sanitizeForFolderName(String value) {

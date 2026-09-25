@@ -5,17 +5,17 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>olivieri.alex</groupId>
-    <artifactId>PDFUtility_2026_V1</artifactId>
-    <version>1.8</version>
+    <artifactId>PDFUtility_2026</artifactId>
+    <version>2.1</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <itext.version>9.2.0</itext.version>
-        <app.name>PDFUtility_2026_V1</app.name>
+        <app.name>PDFUtility_2026</app.name>
         <app.vendor>Olivieri Alex</app.vendor>
-        <app.version>1.1</app.version>
+        <app.version>2.1</app.version>
         <win.upgrade.uuid>b8af772f-3d12-4739-9a39-d4114d7c40e4</win.upgrade.uuid>
         <javafx.version>22.0.2</javafx.version>
         <javafx.platform>win</javafx.platform>
@@ -24,6 +24,7 @@
         <installer.input.dir>${project.build.directory}/installer</installer.input.dir>
         <installer.output.dir>${project.build.directory}/installer</installer.output.dir>
         <installer.type>app-image</installer.type>
+        <java.max.ram.percentage>90.0</java.max.ram.percentage>
     </properties> 
 
     <dependencies>
@@ -221,7 +222,7 @@
             <artifactId>jpackage-maven-plugin</artifactId>
             <version>1.6.6</version>
             <configuration>
-              <name>PDFUtility_2026_V1</name>
+              <name>PDFUtility_2026</name>
               <destination>${project.build.directory}/installer</destination>
               <input>${project.build.directory}</input>
               <mainJar>${project.build.finalName}.jar</mainJar>
@@ -232,6 +233,9 @@
               <type>EXE</type>
               <appVersion>${project.version}</appVersion>
               <winUpgradeUuid>${win.upgrade.uuid}</winUpgradeUuid>
+              <javaOptions>
+                <option>-XX:MaxRAMPercentage=${java.max.ram.percentage}</option>
+              </javaOptions>
               <winShortcut>true</winShortcut>
               <winMenu>true</winMenu>
               <icon>${project.basedir}/src/main/resources/ui/logo.ico</icon>
